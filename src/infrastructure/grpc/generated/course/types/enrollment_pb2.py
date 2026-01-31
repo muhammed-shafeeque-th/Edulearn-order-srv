@@ -13,57 +13,60 @@ _sym_db = _symbol_database.Default()
 
 
 from src.infrastructure.grpc.generated.course import common_pb2 as course_dot_common__pb2
+from .import course_pb2 as course_dot_types_dot_course__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1d\x63ourse/types/enrollment.proto\x12\x11\x63ourse.enrollment\x1a\x13\x63ourse/common.proto\"\xbf\x01\n\x10\x45nrollmentDetail\x12\x14\n\x0c\x65nrollmentId\x18\x01 \x01(\t\x12\x0e\n\x06userId\x18\x02 \x01(\t\x12\x10\n\x08\x63ourseId\x18\x03 \x01(\t\x12\x17\n\x0fprogressPercent\x18\x04 \x01(\x05\x12\x0e\n\x06status\x18\x05 \x01(\t\x12\x12\n\nenrolledAt\x18\x06 \x01(\t\x12\x36\n\x08sections\x18\x07 \x03(\x0b\x32$.course.enrollment.EnrollmentSection\"\xed\x01\n\x11\x45nrollmentSection\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x18\n\x0b\x64\x65scription\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05order\x18\x04 \x01(\x05\x12\x13\n\x0bisPublished\x18\x05 \x01(\x08\x12\x32\n\x07lessons\x18\x07 \x03(\x0b\x32!.course.enrollment.LessonProgress\x12\x32\n\x04quiz\x18\t \x01(\x0b\x32\x1f.course.enrollment.QuizProgressH\x01\x88\x01\x01\x42\x0e\n\x0c_descriptionB\x07\n\x05_quiz\"\x9b\x01\n\x0eLessonProgress\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\r\n\x05order\x18\x03 \x01(\x05\x12\x15\n\x08\x64uration\x18\x04 \x01(\x05H\x00\x88\x01\x01\x12\x11\n\tcompleted\x18\x05 \x01(\x08\x12\x18\n\x0b\x63ompletedAt\x18\n \x01(\tH\x01\x88\x01\x01\x42\x0b\n\t_durationB\x0e\n\x0c_completedAt\"3\n\x0eQuestionOption\x12\r\n\x05value\x18\x01 \x01(\t\x12\x12\n\nis_correct\x18\x02 \x01(\x08\"\xa7\x02\n\x0cQuizQuestion\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1b\n\x13requirePassingScore\x18\x02 \x01(\x08\x12\x32\n\x07options\x18\x07 \x03(\x0b\x32!.course.enrollment.QuestionOption\x12\x16\n\ttimeLimit\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12\x10\n\x08question\x18\x04 \x01(\t\x12\x0c\n\x04type\x18\x16 \x01(\t\x12\x18\n\x0b\x65xplanation\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05score\x18\x06 \x01(\x05H\x02\x88\x01\x01\x12\x1a\n\rcorrectAnswer\x18\x0b \x01(\tH\x03\x88\x01\x01\x42\x0c\n\n_timeLimitB\x0e\n\x0c_explanationB\x08\n\x06_scoreB\x10\n\x0e_correctAnswer\"\xf1\x02\n\x0cQuizProgress\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x12\x18\n\x0b\x64\x65scription\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x32\n\tquestions\x18\x05 \x03(\x0b\x32\x1f.course.enrollment.QuizQuestion\x12\x16\n\ttimeLimit\x18\x06 \x01(\x05H\x01\x88\x01\x01\x12\x1b\n\x13requirePassingScore\x18\x07 \x01(\x08\x12\x19\n\x0cpassingScore\x18\x08 \x01(\x05H\x02\x88\x01\x01\x12\x11\n\tcompleted\x18\t \x01(\x08\x12\x13\n\x06passed\x18\n \x01(\x08H\x03\x88\x01\x01\x12\x12\n\x05score\x18\x0b \x01(\x05H\x04\x88\x01\x01\x12\x18\n\x0b\x63ompletedAt\x18\x0c \x01(\tH\x05\x88\x01\x01\x42\x0e\n\x0c_descriptionB\x0c\n\n_timeLimitB\x0f\n\r_passingScoreB\t\n\x07_passedB\x08\n\x06_scoreB\x0e\n\x0c_completedAt\"=\n\x17\x43reateEnrollmentRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x11\n\tcourse_id\x18\x02 \x01(\t\">\n\x14GetEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"@\n\x17UpdateEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t\"0\n\x17\x44\x65leteEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\"@\n\x16\x43heckEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"B\n\x1c\x43heckCourseEnrollmentRequest\x12\x11\n\tcourse_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"]\n\x1bGetEnrollmentsByUserRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12-\n\npagination\x18\x02 \x01(\x0b\x32\x19.course.common.Pagination\"a\n\x1dGetEnrollmentsByCourseRequest\x12\x11\n\tcourse_id\x18\x01 \x01(\t\x12-\n\npagination\x18\x02 \x01(\x0b\x32\x19.course.common.Pagination\"\x96\x02\n\x0e\x45nrollmentData\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x11\n\tcourse_id\x18\x03 \x01(\t\x12\x0e\n\x06status\x18\x04 \x01(\t\x12\x10\n\x08progress\x18\x05 \x01(\x01\x12\x13\n\x0b\x65nrolled_at\x18\x06 \x01(\t\x12\x14\n\x0c\x63ompleted_at\x18\x07 \x01(\t\x12\x12\n\ncreated_at\x18\x08 \x01(\t\x12\x12\n\nupdated_at\x18\t \x01(\t\x12\x37\n\x06\x63ourse\x18\x0b \x01(\x0b\x32\'.course.enrollment.EnrollmentCourseData\x12\x17\n\ndeleted_at\x18\n \x01(\tH\x00\x88\x01\x01\x42\r\n\x0b_deleted_at\"\xb4\x01\n\x14\x45nrollmentCourseData\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06rating\x18\x03 \x01(\x05\x12\x11\n\tthumbnail\x18\x04 \x01(\t\x12\x10\n\x08\x63\x61tegory\x18\x05 \x01(\t\x12\r\n\x05level\x18\x06 \x01(\t\x12\x14\n\x0clessonsCount\x18\x07 \x01(\x05\x12\'\n\ninstructor\x18\x08 \x01(\x0b\x32\x13.course.common.User\"~\n\x12\x45nrollmentResponse\x12\x37\n\nenrollment\x18\x01 \x01(\x0b\x32!.course.enrollment.EnrollmentDataH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"X\n\x0f\x45nrollmentsData\x12\x36\n\x0b\x65nrollments\x18\x01 \x03(\x0b\x32!.course.enrollment.EnrollmentData\x12\r\n\x05total\x18\x02 \x01(\x05\"\x81\x01\n\x13\x45nrollmentsResponse\x12\x39\n\x0b\x65nrollments\x18\x01 \x01(\x0b\x32\".course.enrollment.EnrollmentsDataH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"\x84\x01\n\x15GetEnrollmentResponse\x12:\n\x0b\x65nrollments\x18\x01 \x01(\x0b\x32#.course.enrollment.EnrollmentDetailH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"|\n\x18\x44\x65leteEnrollmentResponse\x12/\n\x07success\x18\x01 \x01(\x0b\x32\x1c.course.common.DeleteSuccessH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"^\n\x17\x43heckEnrollmentResponse\x12\x12\n\x08\x65nrolled\x18\x01 \x01(\x08H\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06resultb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1d\x63ourse/types/enrollment.proto\x12\x11\x63ourse.enrollment\x1a\x13\x63ourse/common.proto\x1a\x19\x63ourse/types/course.proto\"\x96\x02\n\x0e\x45nrollmentData\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x11\n\tcourse_id\x18\x03 \x01(\t\x12\x0e\n\x06status\x18\x04 \x01(\t\x12\x10\n\x08progress\x18\x05 \x01(\x01\x12\x13\n\x0b\x65nrolled_at\x18\x06 \x01(\t\x12\x14\n\x0c\x63ompleted_at\x18\x07 \x01(\t\x12\x12\n\ncreated_at\x18\x08 \x01(\t\x12\x12\n\nupdated_at\x18\t \x01(\t\x12\x17\n\ndeleted_at\x18\n \x01(\tH\x00\x88\x01\x01\x12\x37\n\x06\x63ourse\x18\x0b \x01(\x0b\x32\'.course.enrollment.EnrollmentCourseDataB\r\n\x0b_deleted_at\"\xb4\x01\n\x14\x45nrollmentCourseData\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06rating\x18\x03 \x01(\x05\x12\x11\n\tthumbnail\x18\x04 \x01(\t\x12\x10\n\x08\x63\x61tegory\x18\x05 \x01(\t\x12\r\n\x05level\x18\x06 \x01(\t\x12\x14\n\x0clessonsCount\x18\x07 \x01(\x05\x12\'\n\ninstructor\x18\x08 \x01(\x0b\x32\x13.course.common.User\"\xc4\x01\n\x10\x45nrollmentDetail\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x11\n\tcourse_id\x18\x03 \x01(\t\x12\x18\n\x10progress_percent\x18\x04 \x01(\x05\x12\x0e\n\x06status\x18\x05 \x01(\t\x12\x13\n\x0b\x65nrolled_at\x18\x06 \x01(\t\x12\x36\n\x08sections\x18\x07 \x03(\x0b\x32$.course.enrollment.EnrollmentSection\"\xee\x01\n\x11\x45nrollmentSection\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x18\n\x0b\x64\x65scription\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05order\x18\x04 \x01(\x05\x12\x14\n\x0cis_published\x18\x05 \x01(\x08\x12\x32\n\x07lessons\x18\x07 \x03(\x0b\x32!.course.enrollment.LessonProgress\x12\x32\n\x04quiz\x18\t \x01(\x0b\x32\x1f.course.enrollment.QuizProgressH\x01\x88\x01\x01\x42\x0e\n\x0c_descriptionB\x07\n\x05_quiz\"\x9d\x01\n\x0eLessonProgress\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\r\n\x05order\x18\x03 \x01(\x05\x12\x15\n\x08\x64uration\x18\x04 \x01(\x05H\x00\x88\x01\x01\x12\x11\n\tcompleted\x18\x05 \x01(\x08\x12\x19\n\x0c\x63ompleted_at\x18\n \x01(\tH\x01\x88\x01\x01\x42\x0b\n\t_durationB\x0f\n\r_completed_at\"\x1f\n\x0eQuestionOption\x12\r\n\x05value\x18\x01 \x01(\t\"\xa9\x02\n\x0cQuizQuestion\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1b\n\x13requirePassingScore\x18\x02 \x01(\x08\x12\x32\n\x07options\x18\x07 \x03(\x0b\x32!.course.enrollment.QuestionOption\x12\x16\n\ttimeLimit\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12\x10\n\x08question\x18\x04 \x01(\t\x12\x0c\n\x04type\x18\x16 \x01(\t\x12\x18\n\x0b\x65xplanation\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05score\x18\x06 \x01(\x05H\x02\x88\x01\x01\x12\x1b\n\x0e\x63orrect_answer\x18\x0b \x01(\tH\x03\x88\x01\x01\x42\x0c\n\n_timeLimitB\x0e\n\x0c_explanationB\x08\n\x06_scoreB\x11\n\x0f_correct_answer\"\xf9\x02\n\x0cQuizProgress\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x12\x18\n\x0b\x64\x65scription\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x32\n\tquestions\x18\x05 \x03(\x0b\x32\x1f.course.enrollment.QuizQuestion\x12\x17\n\ntime_limit\x18\x06 \x01(\x05H\x01\x88\x01\x01\x12\x1d\n\x15require_passing_score\x18\x07 \x01(\x08\x12\x1a\n\rpassing_score\x18\x08 \x01(\x05H\x02\x88\x01\x01\x12\x11\n\tcompleted\x18\t \x01(\x08\x12\x13\n\x06passed\x18\n \x01(\x08H\x03\x88\x01\x01\x12\x12\n\x05score\x18\x0b \x01(\x05H\x04\x88\x01\x01\x12\x19\n\x0c\x63ompleted_at\x18\x0c \x01(\tH\x05\x88\x01\x01\x42\x0e\n\x0c_descriptionB\r\n\x0b_time_limitB\x10\n\x0e_passing_scoreB\t\n\x07_passedB\x08\n\x06_scoreB\x0f\n\r_completed_at\"=\n\x17\x43reateEnrollmentRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x11\n\tcourse_id\x18\x02 \x01(\t\">\n\x14GetEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"@\n\x17UpdateEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t\"0\n\x17\x44\x65leteEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\"@\n\x16\x43heckEnrollmentRequest\x12\x15\n\renrollment_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"B\n\x1c\x43heckCourseEnrollmentRequest\x12\x11\n\tcourse_id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\"]\n\x1bGetEnrollmentsByUserRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12-\n\npagination\x18\x02 \x01(\x0b\x32\x19.course.common.Pagination\"a\n\x1dGetEnrollmentsByCourseRequest\x12\x11\n\tcourse_id\x18\x01 \x01(\t\x12-\n\npagination\x18\x02 \x01(\x0b\x32\x19.course.common.Pagination\"~\n\x12\x45nrollmentResponse\x12\x37\n\nenrollment\x18\x01 \x01(\x0b\x32!.course.enrollment.EnrollmentDataH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"X\n\x0f\x45nrollmentsData\x12\x36\n\x0b\x65nrollments\x18\x01 \x03(\x0b\x32!.course.enrollment.EnrollmentData\x12\r\n\x05total\x18\x02 \x01(\x05\"\x81\x01\n\x13\x45nrollmentsResponse\x12\x39\n\x0b\x65nrollments\x18\x01 \x01(\x0b\x32\".course.enrollment.EnrollmentsDataH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"\x81\x01\n\x15GetEnrollmentResponse\x12\x37\n\nenrollment\x18\x01 \x01(\x0b\x32!.course.enrollment.EnrollmentDataH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"\x8a\x01\n\x1cGetEnrollmentDetailsResponse\x12\x39\n\nenrollment\x18\x01 \x01(\x0b\x32#.course.enrollment.EnrollmentDetailH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"|\n\x18\x44\x65leteEnrollmentResponse\x12/\n\x07success\x18\x01 \x01(\x0b\x32\x1c.course.common.DeleteSuccessH\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06result\"^\n\x17\x43heckEnrollmentResponse\x12\x12\n\x08\x65nrolled\x18\x01 \x01(\x08H\x00\x12%\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x14.course.common.ErrorH\x00\x42\x08\n\x06resultb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'course.types.enrollment_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_ENROLLMENTDETAIL']._serialized_start=74
-  _globals['_ENROLLMENTDETAIL']._serialized_end=265
-  _globals['_ENROLLMENTSECTION']._serialized_start=268
-  _globals['_ENROLLMENTSECTION']._serialized_end=505
-  _globals['_LESSONPROGRESS']._serialized_start=508
-  _globals['_LESSONPROGRESS']._serialized_end=663
-  _globals['_QUESTIONOPTION']._serialized_start=665
-  _globals['_QUESTIONOPTION']._serialized_end=716
-  _globals['_QUIZQUESTION']._serialized_start=719
-  _globals['_QUIZQUESTION']._serialized_end=1014
-  _globals['_QUIZPROGRESS']._serialized_start=1017
-  _globals['_QUIZPROGRESS']._serialized_end=1386
-  _globals['_CREATEENROLLMENTREQUEST']._serialized_start=1388
-  _globals['_CREATEENROLLMENTREQUEST']._serialized_end=1449
-  _globals['_GETENROLLMENTREQUEST']._serialized_start=1451
-  _globals['_GETENROLLMENTREQUEST']._serialized_end=1513
-  _globals['_UPDATEENROLLMENTREQUEST']._serialized_start=1515
-  _globals['_UPDATEENROLLMENTREQUEST']._serialized_end=1579
-  _globals['_DELETEENROLLMENTREQUEST']._serialized_start=1581
-  _globals['_DELETEENROLLMENTREQUEST']._serialized_end=1629
-  _globals['_CHECKENROLLMENTREQUEST']._serialized_start=1631
-  _globals['_CHECKENROLLMENTREQUEST']._serialized_end=1695
-  _globals['_CHECKCOURSEENROLLMENTREQUEST']._serialized_start=1697
-  _globals['_CHECKCOURSEENROLLMENTREQUEST']._serialized_end=1763
-  _globals['_GETENROLLMENTSBYUSERREQUEST']._serialized_start=1765
-  _globals['_GETENROLLMENTSBYUSERREQUEST']._serialized_end=1858
-  _globals['_GETENROLLMENTSBYCOURSEREQUEST']._serialized_start=1860
-  _globals['_GETENROLLMENTSBYCOURSEREQUEST']._serialized_end=1957
-  _globals['_ENROLLMENTDATA']._serialized_start=1960
-  _globals['_ENROLLMENTDATA']._serialized_end=2238
-  _globals['_ENROLLMENTCOURSEDATA']._serialized_start=2241
-  _globals['_ENROLLMENTCOURSEDATA']._serialized_end=2421
-  _globals['_ENROLLMENTRESPONSE']._serialized_start=2423
-  _globals['_ENROLLMENTRESPONSE']._serialized_end=2549
-  _globals['_ENROLLMENTSDATA']._serialized_start=2551
-  _globals['_ENROLLMENTSDATA']._serialized_end=2639
-  _globals['_ENROLLMENTSRESPONSE']._serialized_start=2642
-  _globals['_ENROLLMENTSRESPONSE']._serialized_end=2771
-  _globals['_GETENROLLMENTRESPONSE']._serialized_start=2774
-  _globals['_GETENROLLMENTRESPONSE']._serialized_end=2906
-  _globals['_DELETEENROLLMENTRESPONSE']._serialized_start=2908
-  _globals['_DELETEENROLLMENTRESPONSE']._serialized_end=3032
-  _globals['_CHECKENROLLMENTRESPONSE']._serialized_start=3034
-  _globals['_CHECKENROLLMENTRESPONSE']._serialized_end=3128
+  _globals['_ENROLLMENTDATA']._serialized_start=101
+  _globals['_ENROLLMENTDATA']._serialized_end=379
+  _globals['_ENROLLMENTCOURSEDATA']._serialized_start=382
+  _globals['_ENROLLMENTCOURSEDATA']._serialized_end=562
+  _globals['_ENROLLMENTDETAIL']._serialized_start=565
+  _globals['_ENROLLMENTDETAIL']._serialized_end=761
+  _globals['_ENROLLMENTSECTION']._serialized_start=764
+  _globals['_ENROLLMENTSECTION']._serialized_end=1002
+  _globals['_LESSONPROGRESS']._serialized_start=1005
+  _globals['_LESSONPROGRESS']._serialized_end=1162
+  _globals['_QUESTIONOPTION']._serialized_start=1164
+  _globals['_QUESTIONOPTION']._serialized_end=1195
+  _globals['_QUIZQUESTION']._serialized_start=1198
+  _globals['_QUIZQUESTION']._serialized_end=1495
+  _globals['_QUIZPROGRESS']._serialized_start=1498
+  _globals['_QUIZPROGRESS']._serialized_end=1875
+  _globals['_CREATEENROLLMENTREQUEST']._serialized_start=1877
+  _globals['_CREATEENROLLMENTREQUEST']._serialized_end=1938
+  _globals['_GETENROLLMENTREQUEST']._serialized_start=1940
+  _globals['_GETENROLLMENTREQUEST']._serialized_end=2002
+  _globals['_UPDATEENROLLMENTREQUEST']._serialized_start=2004
+  _globals['_UPDATEENROLLMENTREQUEST']._serialized_end=2068
+  _globals['_DELETEENROLLMENTREQUEST']._serialized_start=2070
+  _globals['_DELETEENROLLMENTREQUEST']._serialized_end=2118
+  _globals['_CHECKENROLLMENTREQUEST']._serialized_start=2120
+  _globals['_CHECKENROLLMENTREQUEST']._serialized_end=2184
+  _globals['_CHECKCOURSEENROLLMENTREQUEST']._serialized_start=2186
+  _globals['_CHECKCOURSEENROLLMENTREQUEST']._serialized_end=2252
+  _globals['_GETENROLLMENTSBYUSERREQUEST']._serialized_start=2254
+  _globals['_GETENROLLMENTSBYUSERREQUEST']._serialized_end=2347
+  _globals['_GETENROLLMENTSBYCOURSEREQUEST']._serialized_start=2349
+  _globals['_GETENROLLMENTSBYCOURSEREQUEST']._serialized_end=2446
+  _globals['_ENROLLMENTRESPONSE']._serialized_start=2448
+  _globals['_ENROLLMENTRESPONSE']._serialized_end=2574
+  _globals['_ENROLLMENTSDATA']._serialized_start=2576
+  _globals['_ENROLLMENTSDATA']._serialized_end=2664
+  _globals['_ENROLLMENTSRESPONSE']._serialized_start=2667
+  _globals['_ENROLLMENTSRESPONSE']._serialized_end=2796
+  _globals['_GETENROLLMENTRESPONSE']._serialized_start=2799
+  _globals['_GETENROLLMENTRESPONSE']._serialized_end=2928
+  _globals['_GETENROLLMENTDETAILSRESPONSE']._serialized_start=2931
+  _globals['_GETENROLLMENTDETAILSRESPONSE']._serialized_end=3069
+  _globals['_DELETEENROLLMENTRESPONSE']._serialized_start=3071
+  _globals['_DELETEENROLLMENTRESPONSE']._serialized_end=3195
+  _globals['_CHECKENROLLMENTRESPONSE']._serialized_start=3197
+  _globals['_CHECKENROLLMENTRESPONSE']._serialized_end=3291
 # @@protoc_insertion_point(module_scope)

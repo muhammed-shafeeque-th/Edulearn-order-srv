@@ -1,6 +1,6 @@
 from src.infrastructure.grpc.generated.course import common_pb2 as _common_pb2
-from course.types import quiz_pb2 as _quiz_pb2
-from course.types import lesson_pb2 as _lesson_pb2
+from . import quiz_pb2 as _quiz_pb2
+from . import lesson_pb2 as _lesson_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message

@@ -1,5 +1,5 @@
 from src.infrastructure.grpc.generated.course import common_pb2 as _common_pb2
-from course.types import section_pb2 as _section_pb2
+from . import section_pb2 as _section_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -140,28 +140,34 @@ class UpdateCourseRequest(_message.Message):
     def __init__(self, title: _Optional[str] = ..., topics: _Optional[_Iterable[str]] = ..., sub_title: _Optional[str] = ..., category: _Optional[str] = ..., sub_category: _Optional[str] = ..., language: _Optional[str] = ..., level: _Optional[str] = ..., subtitle_language: _Optional[str] = ..., duration_value: _Optional[str] = ..., duration_unit: _Optional[str] = ..., course_id: _Optional[str] = ..., user_id: _Optional[str] = ..., description: _Optional[str] = ..., learning_outcomes: _Optional[_Iterable[str]] = ..., target_audience: _Optional[_Iterable[str]] = ..., requirements: _Optional[_Iterable[str]] = ..., thumbnail: _Optional[str] = ..., trailer: _Optional[str] = ..., price: _Optional[int] = ..., discount_price: _Optional[int] = ..., currency: _Optional[str] = ...) -> None: ...
 
 class DeleteCourseRequest(_message.Message):
-    __slots__ = ("course_id", "user_id")
+    __slots__ = ("course_id", "user_id", "is_admin")
     COURSE_ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
+    IS_ADMIN_FIELD_NUMBER: _ClassVar[int]
     course_id: str
     user_id: str
-    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+    is_admin: bool
+    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ..., is_admin: bool = ...) -> None: ...
 
 class UnPublishCourseRequest(_message.Message):
-    __slots__ = ("course_id", "user_id")
+    __slots__ = ("course_id", "user_id", "is_admin")
     COURSE_ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
+    IS_ADMIN_FIELD_NUMBER: _ClassVar[int]
     course_id: str
     user_id: str
-    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+    is_admin: bool
+    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ..., is_admin: bool = ...) -> None: ...
 
 class PublishCourseRequest(_message.Message):
-    __slots__ = ("course_id", "user_id")
+    __slots__ = ("course_id", "user_id", "is_admin")
     COURSE_ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
+    IS_ADMIN_FIELD_NUMBER: _ClassVar[int]
     course_id: str
     user_id: str
-    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+    is_admin: bool
+    def __init__(self, course_id: _Optional[str] = ..., user_id: _Optional[str] = ..., is_admin: bool = ...) -> None: ...
 
 class GetCoursesByInstructorRequest(_message.Message):
     __slots__ = ("instructor_id", "pagination")

@@ -54,6 +54,11 @@ class OrderServiceStub(object):
                 request_serializer=order__service__pb2.GetOrderByIdRequest.SerializeToString,
                 response_deserializer=order__service__pb2.OrderResponse.FromString,
                 _registered_method=True)
+        self.RestoreOrder = channel.unary_unary(
+                '/order_service.OrderService/RestoreOrder',
+                request_serializer=order__service__pb2.RestoreOrderRequest.SerializeToString,
+                response_deserializer=order__service__pb2.OrderResponse.FromString,
+                _registered_method=True)
         self.GetOrderStatus = channel.unary_unary(
                 '/order_service.OrderService/GetOrderStatus',
                 request_serializer=order__service__pb2.GetOrderStatusRequest.SerializeToString,
@@ -63,6 +68,11 @@ class OrderServiceStub(object):
                 '/order_service.OrderService/GetOrders',
                 request_serializer=order__service__pb2.GetOrdersRequest.SerializeToString,
                 response_deserializer=order__service__pb2.OrdersResponse.FromString,
+                _registered_method=True)
+        self.GetRevenueStats = channel.unary_unary(
+                '/order_service.OrderService/GetRevenueStats',
+                request_serializer=order__service__pb2.GetRevenueStatsRequest.SerializeToString,
+                response_deserializer=order__service__pb2.GetRevenueStatsResponse.FromString,
                 _registered_method=True)
 
 
@@ -87,6 +97,12 @@ class OrderServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def RestoreOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetOrderStatus(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -95,6 +111,13 @@ class OrderServiceServicer(object):
 
     def GetOrders(self, request, context):
         """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetRevenueStats(self, request, context):
+        """Stats
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -117,6 +140,11 @@ def add_OrderServiceServicer_to_server(servicer, server):
                     request_deserializer=order__service__pb2.GetOrderByIdRequest.FromString,
                     response_serializer=order__service__pb2.OrderResponse.SerializeToString,
             ),
+            'RestoreOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.RestoreOrder,
+                    request_deserializer=order__service__pb2.RestoreOrderRequest.FromString,
+                    response_serializer=order__service__pb2.OrderResponse.SerializeToString,
+            ),
             'GetOrderStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetOrderStatus,
                     request_deserializer=order__service__pb2.GetOrderStatusRequest.FromString,
@@ -126,6 +154,11 @@ def add_OrderServiceServicer_to_server(servicer, server):
                     servicer.GetOrders,
                     request_deserializer=order__service__pb2.GetOrdersRequest.FromString,
                     response_serializer=order__service__pb2.OrdersResponse.SerializeToString,
+            ),
+            'GetRevenueStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetRevenueStats,
+                    request_deserializer=order__service__pb2.GetRevenueStatsRequest.FromString,
+                    response_serializer=order__service__pb2.GetRevenueStatsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -220,6 +253,33 @@ class OrderService(object):
             _registered_method=True)
 
     @staticmethod
+    def RestoreOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/order_service.OrderService/RestoreOrder',
+            order__service__pb2.RestoreOrderRequest.SerializeToString,
+            order__service__pb2.OrderResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def GetOrderStatus(request,
             target,
             options=(),
@@ -263,6 +323,33 @@ class OrderService(object):
             '/order_service.OrderService/GetOrders',
             order__service__pb2.GetOrdersRequest.SerializeToString,
             order__service__pb2.OrdersResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetRevenueStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/order_service.OrderService/GetRevenueStats',
+            order__service__pb2.GetRevenueStatsRequest.SerializeToString,
+            order__service__pb2.GetRevenueStatsResponse.FromString,
             options,
             channel_credentials,
             insecure,

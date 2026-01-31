@@ -5,6 +5,28 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class GetRevenueStatsResponse(_message.Message):
+    __slots__ = ("success", "error")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    success: RevenueStats
+    error: Error
+    def __init__(self, success: _Optional[_Union[RevenueStats, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class RevenueStats(_message.Message):
+    __slots__ = ("revenue_this_month", "revenue_last_month")
+    REVENUE_THIS_MONTH_FIELD_NUMBER: _ClassVar[int]
+    REVENUE_LAST_MONTH_FIELD_NUMBER: _ClassVar[int]
+    revenue_this_month: int
+    revenue_last_month: int
+    def __init__(self, revenue_this_month: _Optional[int] = ..., revenue_last_month: _Optional[int] = ...) -> None: ...
+
+class GetRevenueStatsRequest(_message.Message):
+    __slots__ = ("range",)
+    RANGE_FIELD_NUMBER: _ClassVar[int]
+    range: str
+    def __init__(self, range: _Optional[str] = ...) -> None: ...
+
 class Error(_message.Message):
     __slots__ = ("code", "message", "details")
     CODE_FIELD_NUMBER: _ClassVar[int]
@@ -184,6 +206,14 @@ class BookSessionRequest(_message.Message):
     def __init__(self, user_id: _Optional[str] = ..., session_id: _Optional[str] = ...) -> None: ...
 
 class GetOrderByIdRequest(_message.Message):
+    __slots__ = ("order_id", "user_id")
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    order_id: str
+    user_id: str
+    def __init__(self, order_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+
+class RestoreOrderRequest(_message.Message):
     __slots__ = ("order_id", "user_id")
     ORDER_ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]

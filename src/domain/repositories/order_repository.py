@@ -1,10 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Literal, Optional, List, TypedDict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.entities.order import Order
 from src.domain.entities.order_items import OrderItem
 from src.domain.entities.payment_details import PaymentDetails
+
+
+RevenueRange = Literal["thisMonth", "lastMonth"]
+
+
+class RevenueStats(TypedDict):
+    revenue_this_month: int
+    revenue_last_month: int
 
 
 # This class is an abstract base class for an order repository interface in Python.
@@ -49,16 +57,27 @@ class IOrderRepository(ABC):
 
 
     @abstractmethod
-    async def find_by_user_id(self, user_id: str, session: AsyncSession) -> List[Order]:
+    async def find_by_user_id(
+        self,
+        user_id: str,
+        session: AsyncSession,
+        status: str | None = None,
+        page: int | None = 1,
+        page_size: int | None = 20,
+        sort_order: str | None = "desc"
+    ) -> tuple[list[Order], int]:
         """
-        Asynchronously retrieves all orders associated with a specific user.
-        Returns a list of orders for the given user identifier.
-
+        Fetch orders for a specific user, with pagination and sorting.
+        Uses Redis cache for optimization. Falls back to DB if not cached.
+        Results are cached per query parameters.
         Args:
-            user_id (str): The unique identifier of the user.
-
+            user_id: The user to fetch orders for.
+            session: An active SQLAlchemy AsyncSession.
+            page: The page number (1-based).
+            page_size: The number of items per page.
+            sort_order: Either "asc" or "desc" for ordering by creation.
         Returns:
-            List[Order]: A list of order objects associated with the user.
+            tuple[list[Order], int]: A tuple of the list of orders matching the query and the total number of orders.
         """
         pass
 
@@ -92,6 +111,24 @@ class IOrderRepository(ABC):
         Args:
             order_id (str): The unique identifier of the order.
             payment_details (PaymentDetails): Payment details to attach.
+        """
+        pass
+    @abstractmethod
+    async def get_revenue_stats(
+        self, 
+        range: RevenueRange, 
+        session: AsyncSession
+    ) -> RevenueStats:
+        """
+        Calculate revenue statistics for orders within a specified date range.
+
+        Args:
+            range (Literal["thisMonth", "lastMonth"]): The range for which to calculate revenue stats.
+            session (AsyncSession): An active SQLAlchemy async session.
+
+        Returns:
+            RevenueStats: A dictionary containing revenue stats, e.g., 
+                  {"revenue_this_month": int, "revenue_last_month": int}
         """
         pass
 

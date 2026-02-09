@@ -1,4 +1,7 @@
 from dependency_injector import containers, providers
+from src.application.use_cases.order.get_revenue_stats_use_case import GetRevenueStatsUseCase
+from src.application.use_cases.order.restore_order_use_case import RestoreOrderUseCase
+from src.application.use_cases.order.order_timeout_use_case import HandleOrderTimeoutUseCase
 from src.application.use_cases.order.order_failed_use_case import OrderFailedUseCase
 from src.application.use_cases.order.order_success_use_case import OrderSuccessUseCase
 from src.application.use_cases.order.order_payment_initiated_use_case import OrderPaymentInitiatedUseCase
@@ -33,7 +36,6 @@ from src.domain.entities.order import Order
 from src.domain.entities.session_booking import SessionBooking
 
 
-
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(modules=[
         "src.application.use_cases.order.place_order_use_case",
@@ -45,8 +47,8 @@ class Container(containers.DeclarativeContainer):
         "src.application.services.saga.steps.session_booking_steps",
         "src.presentation.grpc.order_service_impl",
         "src.main",
-        # Note: If you plan to use dependency injection (e.g., with `@inject`) for dependencies inside the KafkaConsumer or modules/components that the consumer calls, you should add its Python import path (e.g., "src.infrastructure.kafka.consumer") to this wiring config. 
-        # This will enable Dependency Injector to perform injection/wiring in that module. 
+        # Note: If you plan to use dependency injection (e.g., with `@inject`) for dependencies inside the KafkaConsumer or modules/components that the consumer calls, you should add its Python import path (e.g., "src.infrastructure.kafka.consumer") to this wiring config.
+        # This will enable Dependency Injector to perform injection/wiring in that module.
         # If you do not wire it here, Dependency Injector will not automatically inject dependencies into functions/classes declared in KafkaConsumer or its module.
         # Only add modules here if you use DI features (like @inject, Provide[], etc.) within them.
     ])
@@ -63,7 +65,8 @@ class Container(containers.DeclarativeContainer):
     db_session_factory = providers.Factory(AsyncSessionFactory)
 
     # Redis
-    redis_client = providers.Singleton(RedisClient, logger_service=logging_service)
+    redis_client = providers.Singleton(
+        RedisClient, logger_service=logging_service)
 
     # Repositories
     order_repository = providers.Factory(
@@ -84,7 +87,6 @@ class Container(containers.DeclarativeContainer):
         KafkaProducer,
         logging_service
     )
-    
 
     # gRPC Clients
     user_service_client = providers.Singleton(
@@ -129,6 +131,14 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
+    restore_order_use_case = providers.Factory(
+        RestoreOrderUseCase,
+        order_repository=order_repository,
+        kafka_producer=kafka_producer,
+        redis=redis_client,
+        logging_service=logging_service,
+        metrics_service=metrics_service,
+    )
     get_orders_use_case = providers.Factory(
         GetOrdersUseCase,
         order_repository=order_repository,
@@ -137,7 +147,7 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
-    payment_initiated_usecase = providers.Factory(
+    payment_initiated_handler = providers.Factory(
         OrderPaymentInitiatedUseCase,
         order_repository=order_repository,
         kafka_producer=kafka_producer,
@@ -145,7 +155,7 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
-    order_success_usecase = providers.Factory(
+    order_success_handler = providers.Factory(
         OrderSuccessUseCase,
         order_repository=order_repository,
         kafka_producer=kafka_producer,
@@ -153,8 +163,16 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
-    order_failed_usecase = providers.Factory(
+    order_failed_handler = providers.Factory(
         OrderFailedUseCase,
+        order_repository=order_repository,
+        kafka_producer=kafka_producer,
+        redis=redis_client,
+        logging_service=logging_service,
+        metrics_service=metrics_service,
+    )
+    get_revenue_stats_use_case = providers.Factory(
+        GetRevenueStatsUseCase,
         order_repository=order_repository,
         kafka_producer=kafka_producer,
         redis=redis_client,
@@ -170,16 +188,24 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
-    
-    
+    order_timeout_handler = providers.Factory(
+        HandleOrderTimeoutUseCase,
+        order_repository=order_repository,
+        kafka_producer=kafka_producer,
+        redis=redis_client,
+        logging_service=logging_service,
+        metrics_service=metrics_service,
+    )
+
     # Kafka consumer
     kafka_consumer = providers.Singleton(
         KafkaConsumer,
         order_repository=order_repository,
         session_booking_repository=session_booking_repository,
-        payment_initiated_usecase=payment_initiated_usecase,
-        order_success_usecase=order_success_usecase,
-        order_failed_usecase =order_failed_usecase,
+        payment_initiated_handler=payment_initiated_handler,
+        order_success_handler=order_success_handler,
+        order_failed_handler=order_failed_handler,
+        order_timeout_handler=order_timeout_handler,
         kafka_producer=kafka_producer,
         metrics_service=metrics_service,
         redis=redis_client,

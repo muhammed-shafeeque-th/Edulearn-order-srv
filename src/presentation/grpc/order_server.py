@@ -1,7 +1,10 @@
-import grpc
+from typing import Any
 import asyncio
-from grpc import aio
+from grpc import  aio
 from tenacity import RetryError
+from src.application.use_cases.order.get_revenue_stats_use_case import GetRevenueStatsUseCase
+from src.application.dtos.restore_order_dto import RestoreOrderDto
+from src.presentation.grpc.helpers.exception_hanlders import create_error_response, create_grpc_service_error, handle_grpc_exception
 from src.shared.utils.get_metadata import get_metadata_value
 from src.domain.exceptions.exceptions import DomainException
 from src.application.dtos.get_order_dto import GetOrderDto
@@ -18,25 +21,25 @@ from src.application.dtos.session_booking_create_dto import SessionBookingCreate
 from src.application.use_cases.session_booking.session_booking_use_case import BookSessionUseCase
 from src.infrastructure.grpc.auth_guard import AuthGuard
 from src.infrastructure.grpc.generated.order_service_pb2 import (
-    GetOrderByIdRequest,
-    GetOrderByUserIdRequest,
+    GetOrdersRequest,
+    GetRevenueStatsResponse,
     OrderResponse,
+    OrderStatus,
+    OrderStatusResponse,
     OrderSuccess,
     OrdersResponse,
     BookSessionResponse,
     OrdersSuccess,
-    PlaceOrderSuccess,
     BookSessionSuccess,
-    Error,
-    ErrorDetail
+    RevenueStats,
 )
 from src.infrastructure.grpc.generated.order_service_pb2_grpc import OrderServiceServicer, add_OrderServiceServicer_to_server
 from src.application.use_cases.order.place_order_use_case import PlaceOrderUseCase
+from src.application.use_cases.order.restore_order_use_case import RestoreOrderUseCase
 from src.infrastructure.grpc.interceptors.server_interceptor import (
     ServerLoggingInterceptor,
     ServerMetricsInterceptor,
     ServerTracingInterceptor,
-    ServerAuthInterceptor,
 )
 from src.infrastructure.config.settings import settings
 
@@ -45,31 +48,22 @@ class OrderServiceImpl(OrderServiceServicer):
     def __init__(self,
                  place_order_use_case: PlaceOrderUseCase,
                  get_order_use_case: GetOrderUseCase,
+                 get_revenue_stats_use_case: GetRevenueStatsUseCase,
+                 restore_order_use_case: RestoreOrderUseCase,
                  get_orders_use_case: GetOrdersUseCase,
                  book_session_use_case: BookSessionUseCase,
                  logger: ILoggingService
                  ):
         self.place_order_use_case = place_order_use_case
         self.get_order_use_case = get_order_use_case
+        self.get_order_use_case = get_order_use_case
+        self.get_revenue_stats_use_case = get_revenue_stats_use_case
+        self.restore_order_use_case = restore_order_use_case
         self.get_orders_use_case = get_orders_use_case
         self.book_session_use_case = book_session_use_case
         self.logger = logger.get_logger("OrderServiceImpl")
 
-    def _create_error_response(self, code: str, message: str, details: list | None = None) -> Error:
-        """Create a structured error response"""
-        error_details = []
-        if details:
-            for detail in details:
-                error_details.append(ErrorDetail(
-                    field=detail.get('field', ''),
-                    message=detail.get('message', '')
-                ))
-
-        return Error(
-            code=code,
-            message=message,
-            details=error_details
-        )
+   
 
     async def PlaceOrder(self, request, context: aio.ServicerContext):
         self.logger.info(
@@ -88,68 +82,20 @@ class OrderServiceImpl(OrderServiceServicer):
                 context, "authorization", strip_prefix="Bearer ")
             idempotency_key = get_metadata_value(
                 context, "idempotency-key", cast=lambda x: str(x))
-            self.logger.info("Idempotency Key metadata " +
-                             str(idempotency_key))
 
             result = await self.place_order_use_case.execute(order_dto, idempotency_key)
             self.logger.info(f"Order {result.id} placed successfully")
             return OrderResponse(
                 success=OrderSuccess(order=result.to_response_data())
             )
-        except RetryError as retry_error:
-            actual_exception = retry_error.last_attempt.exception()
-            if isinstance(actual_exception, DomainException):
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code=type(actual_exception).__name__,
-                        message=str(actual_exception),
-                        details=[{"field": "request",
-                                  "message": str(actual_exception)}]
-                    )
-                )
-            else:
-                # fallback to generic error
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code="INTERNAL",
-                        message="Failed to place order",
-                        details=[{"field": "service",
-                                  "message": str(retry_error)}]
-                    )
-                )
-        except DomainException as e:
-            return OrderResponse(
-                error=self._create_error_response(
-                    code=type(e).__name__,
-                    message=str(e),
-                    details=[{"field": "request", "message": str(e)}]
-                )
-            )
-        except ValidationError as ve:
-            details = []
-            for err in ve.errors():
-                field_path = ".".join(str(p) for p in err.get("loc", []))
-                details.append({
-                    "field": field_path or "request",
-                    "message": err.get("msg", "Invalid value"),
-                })
-            self.logger.error(f"Validation error in PlaceOrder: {ve}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INVALID_ARGUMENT",
-                    message="Invalid request data",
-                    details=details,
-                )
-            )
-
         except Exception as e:
-            self.logger.error(f"Failed to place order: {str(e)}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INTERNAL",
-                    message="Failed to place order",
-                    details=[{"field": "service", "message": str(e)}]
-                )
+            return handle_grpc_exception(
+                e,
+                context,
+                OrderResponse,
+                operation="place order",
+                default_message="Failed to place order",
+                logger=self.logger
             )
 
     async def GetOrderById(self, request, context: aio.ServicerContext):
@@ -164,128 +110,115 @@ class OrderServiceImpl(OrderServiceServicer):
                 success=OrderSuccess(order=result.to_response_data())
 
             )
-        except RetryError as retry_error:
-            actual_exception = retry_error.last_attempt.exception()
-            if isinstance(actual_exception, DomainException):
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code=type(actual_exception).__name__,
-                        message=str(actual_exception),
-                        details=[{"field": "request",
-                                  "message": str(actual_exception)}]
-                    )
-                )
-            else:
-                # fallback to generic error
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code="INTERNAL",
-                        message="Failed to get order",
-                        details=[{"field": "service",
-                                  "message": str(retry_error)}]
-                    )
-                )
-        except DomainException as e:
-            return OrderResponse(
-                error=self._create_error_response(
-                    code=type(e).__name__,
-                    message=str(e),
-                    details=[{"field": "request", "message": str(e)}]
-                )
-            )
-        except ValidationError as ve:
-            details = []
-            for err in ve.errors():
-                field_path = ".".join(str(p) for p in err.get("loc", []))
-                details.append({
-                    "field": field_path or "request",
-                    "message": err.get("msg", "Invalid value"),
-                })
-            self.logger.error(f"Validation error in PlaceOrder: {ve}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INVALID_ARGUMENT",
-                    message="Invalid request data",
-                    details=details,
-                )
-            )
 
         except Exception as e:
             self.logger.error(f"Failed to get order: {str(e)}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INTERNAL",
-                    message="Failed to get order",
-                    details=[{"field": "service", "message": str(e)}]
-                )
+            return handle_grpc_exception(
+                e,
+                context,
+                OrderResponse,
+                operation="place order",
+                default_message="Failed to get order  order",
+                logger=self.logger
             )
-
-    async def GetOrdersByUserId(self, request, context: aio.ServicerContext):
+    async def RestoreOrder(self, request, context: aio.ServicerContext):
         self.logger.info(
-            f"Received GetOrdersByUserId request for user {request.user_id}")
+            f"Received RestoreOrder request for order {request.order_id}")
         try:
-            order_dto = GetOrdersByUserDto(
-                user_id=request.user_id)
-            result = await self.get_orders_use_case.execute(order_dto)
-            self.logger.info(f"Fetched orders for user  {request.user_id}")
-            return OrdersResponse(
-                success=OrdersSuccess(
-                    orders=[order.to_response_data() for order in result])
-            )
-        except RetryError as retry_error:
-            actual_exception = retry_error.last_attempt.exception()
-            if isinstance(actual_exception, DomainException):
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code=type(actual_exception).__name__,
-                        message=str(actual_exception),
-                        details=[{"field": "request",
-                                  "message": str(actual_exception)}]
-                    )
-                )
-            else:
-                # fallback to generic error
-                return OrderResponse(
-                    error=self._create_error_response(
-                        code="INTERNAL",
-                        message="Failed to get orders",
-                        details=[{"field": "service",
-                                  "message": str(retry_error)}]
-                    )
-                )
-        except DomainException as e:
+            order_dto = RestoreOrderDto(
+                order_id=request.order_id, user_id=request.user_id)
+            result = await self.restore_order_use_case.execute(order_dto)
+            self.logger.info(f"restored order with id {request.order_id}")
             return OrderResponse(
-                error=self._create_error_response(
-                    code=type(e).__name__,
-                    message=str(e),
-                    details=[{"field": "request", "message": str(e)}]
-                )
-            )
-        except ValidationError as ve:
-            details = []
-            for err in ve.errors():
-                field_path = ".".join(str(p) for p in err.get("loc", []))
-                details.append({
-                    "field": field_path or "request",
-                    "message": err.get("msg", "Invalid value"),
-                })
-            self.logger.error(f"Validation error in PlaceOrder: {ve}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INVALID_ARGUMENT",
-                    message="Invalid request data",
-                    details=details,
-                )
+                success=OrderSuccess(order=result.to_response_data())
+
             )
 
         except Exception as e:
-            self.logger.error(f"Failed to get orders by userId: {str(e)}")
-            return OrderResponse(
-                error=self._create_error_response(
-                    code="INTERNAL",
-                    message="Failed to get orders by userId",
-                    details=[{"field": "service", "message": str(e)}]
+            self.logger.error(f"Failed to restore order: {str(e)}")
+            return handle_grpc_exception(
+                e,
+                context,
+                OrderResponse,
+                operation="restore order",
+                default_message="Failed to restore order  order",
+                logger=self.logger
+            )
+
+    async def GetRevenueStats(self, request, context: aio.ServicerContext):
+        self.logger.info(
+            f"Received GetRevenueStats request for range {request.range}")
+        try:
+            stats = await self.get_revenue_stats_use_case.execute(request.range)
+            self.logger.info(f"Fetched revenue stats for range {request.range}: {stats}")
+            return GetRevenueStatsResponse(
+                success=RevenueStats(
+                    revenue_this_month=stats.get("revenue_this_month", 0),
+                    revenue_last_month=stats.get("revenue_last_month", 0)
                 )
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to get revenue stats: {str(e)}")
+            return handle_grpc_exception(
+                exc=e,
+                ctx=context,
+                response_model=GetRevenueStatsResponse,
+                operation="get revenue stats",
+                default_message="Failed to get revenue stats",
+                logger=self.logger
+            )
+    async def GetOrderStatus(self, request, context: aio.ServicerContext):
+        self.logger.info(
+            f"Received GetOrderStatus request for user {request.order_id}")
+        try:
+            order_dto = GetOrderDto(
+                order_id=request.order_id)
+            result = await self.get_order_use_case.execute(order_dto)
+            self.logger.info(f"fetched status with id {request.order_id}")
+            return OrderStatusResponse(
+                success=OrderStatus(order_id=result.id,
+                                    status=result.status.value)
+
+            )
+
+        except Exception as e:
+            self.logger.error(f"Failed to get order status: {str(e)}")
+            return handle_grpc_exception(
+                exc=e,
+                ctx=context,
+                response_model=OrderResponse,
+                operation="place order",
+                default_message="Failed to get order status",
+                logger=self.logger
+            )
+
+    async def GetOrders(self, request: GetOrdersRequest, context: aio.ServicerContext):
+        self.logger.info(
+            f"Received GetOrders request for user {request.user_id}")
+        try:
+            
+            order_dto = GetOrdersByUserDto.from_proto(
+                user_id=request.user_id, proto_obj=request.params)
+            result = await self.get_orders_use_case.execute(order_dto)
+            self.logger.info(f"Fetched orders {request.user_id}")
+            return OrdersResponse(
+                success=OrdersSuccess(
+                    orders=[order.to_response_data()
+                            for order in result["orders"]],
+                    total=result["total"]),
+
+
+            )
+
+        except Exception as e:
+            self.logger.error(f"Failed to get orders: {str(e)}")
+            return handle_grpc_exception(
+                e,
+                context,
+                OrdersResponse,
+                operation="place order",
+                default_message="Failed to get order status",
+                logger=self.logger
             )
 
     async def BookSession(self, request, context: aio.ServicerContext):
@@ -311,7 +244,7 @@ class OrderServiceImpl(OrderServiceServicer):
             )
         except DomainException as e:
             return OrderResponse(
-                error=self._create_error_response(
+                error=create_error_response(
                     code=type(e).__name__,
                     message=str(e),
                     details=[{"field": "request", "message": str(e)}]
@@ -327,7 +260,7 @@ class OrderServiceImpl(OrderServiceServicer):
                 })
             self.logger.error(f"Validation error in PlaceOrder: {ve}")
             return OrderResponse(
-                error=self._create_error_response(
+                error=create_error_response(
                     code="INVALID_ARGUMENT",
                     message="Invalid request data",
                     details=details,
@@ -336,19 +269,24 @@ class OrderServiceImpl(OrderServiceServicer):
 
         except Exception as e:
             self.logger.error(f"Failed to book session: {str(e)}")
-            return BookSessionResponse(
-                error=self._create_error_response(
+            return create_grpc_service_error(
+                    ctx=context,
                     code="INTERNAL",
                     message="Failed to book session",
                     details=[{"field": "service", "message": str(e)}]
-                )
             )
+
+    
+    
+            
 
 
 async def start_grpc_server(
     place_order_use_case: PlaceOrderUseCase,
     book_session_use_case: BookSessionUseCase,
     get_order_use_case: GetOrderUseCase,
+    get_revenue_stats_use_case: GetRevenueStatsUseCase,
+    restore_order_use_case: RestoreOrderUseCase,
     get_orders_use_case: GetOrdersUseCase,
     auth_guard: AuthGuard,
     logger_service: ILoggingService,
@@ -366,6 +304,8 @@ async def start_grpc_server(
     add_OrderServiceServicer_to_server(
         OrderServiceImpl(place_order_use_case,
                          get_order_use_case,
+                         get_revenue_stats_use_case,
+                         restore_order_use_case,
                          get_orders_use_case,
                          book_session_use_case, logger_service), server
     )

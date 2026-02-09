@@ -30,7 +30,6 @@ class RedisClient(IRedisService):
             retry_on_timeout=True,
             socket_timeout=5,
             socket_connect_timeout=5,
-
         )
         self._client: Redis = Redis.from_pool(self.pool)
 
@@ -58,6 +57,19 @@ class RedisClient(IRedisService):
             self.logger.debug(f"Redis delete: {key}")
         except Exception as e:
             self.logger.error(f"Redis delete failed for key {key}: {str(e)}")
+            raise
+        
+    async def delete_pattern(self, key: str) -> None:
+        """
+        Deletes all keys matching the given pattern (after applying key_prefix).
+        """
+        pattern = self.key_prefix + key
+        try:
+            async for k in self._client.scan_iter(match=pattern):
+                await self._client.delete(k)
+                self.logger.debug(f"Redis delete_pattern: deleted {k}")
+        except Exception as e:
+            self.logger.error(f"Redis delete_pattern failed for pattern {pattern}: {str(e)}")
             raise
 
     async def set(self, key: str, value: Any, expire: int | None = settings.REDIS_TTL) -> None:

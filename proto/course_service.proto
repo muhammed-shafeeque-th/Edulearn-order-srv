@@ -47,9 +47,13 @@ service CourseService {
   rpc DeleteQuiz(course.quiz.DeleteQuizRequest) returns (course.quiz.DeleteQuizResponse);
   rpc GetQuizzesByCourse(course.quiz.GetQuizzesByCourseRequest) returns (course.quiz.QuizzesResponse);
 
+}
+
+service EnrollmentService {
   // Enrollment CRUD
   // rpc CreateEnrollment(course.enrollment.CreateEnrollmentRequest) returns (course.enrollment.EnrollmentResponse);
   rpc GetEnrollment(course.enrollment.GetEnrollmentRequest) returns (course.enrollment.GetEnrollmentResponse);
+  rpc GetEnrollmentDetails(course.enrollment.GetEnrollmentRequest) returns (course.enrollment.GetEnrollmentDetailsResponse);
   rpc UpdateEnrollment(course.enrollment.UpdateEnrollmentRequest) returns (course.enrollment.EnrollmentResponse);
   rpc DeleteEnrollment(course.enrollment.DeleteEnrollmentRequest) returns (course.enrollment.DeleteEnrollmentResponse);
   rpc CheckEnrollment(course.enrollment.CheckEnrollmentRequest) returns (course.enrollment.CheckEnrollmentResponse);

@@ -64,7 +64,6 @@ message LessonProgress {
 
 message QuestionOption {
   string value = 1;
-  bool is_correct = 2;
 }
 
 message QuizQuestion {

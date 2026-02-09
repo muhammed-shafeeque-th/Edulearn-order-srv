@@ -91,16 +91,19 @@ message UpdateCourseRequest {
 message DeleteCourseRequest {
   string course_id = 1;
   string user_id = 2;
+  bool is_admin  = 3;
 
 }
 message UnPublishCourseRequest {
   string course_id = 1;
-  string user_id = 2;
+  optional string user_id = 2;
+  bool is_admin  = 3;
 
 }
 message PublishCourseRequest {
   string course_id = 1;
-  string user_id = 2;
+  optional string user_id = 2;
+  bool is_admin  = 3;
 
 }
 
@@ -116,11 +119,11 @@ message GetEnrolledCoursesRequest {
 
 message CourseData {
   string id = 12;
-  optional string title = 1;
+  string title = 1;
   repeated string  topics = 2;
-  optional string instructor_id = 3;
+  string instructor_id = 3;
   optional string sub_title = 4;
-  optional string category = 5;
+  string category = 5;
   optional string sub_category = 6;
   optional string language = 7;
   optional string subtitle_language = 8;

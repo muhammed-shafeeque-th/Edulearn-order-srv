@@ -10,12 +10,13 @@ class ChannelPool:
     def __init__(
         self,
         service_name: str,
-        service_port: int,
+        service_url: str,
         logging_service: ILoggingService,
         max_size: int = 10,
     ) -> None:
         self.service_name = service_name
-        self.service_port = service_port
+        self.service_url = service_url
+        self.service_port = service_url.split(":")[1]
         self.max_size = max_size
         self.pool: deque = deque(maxlen=max_size)
         self.logger = logging_service.get_logger("ChannelPool")
@@ -23,8 +24,8 @@ class ChannelPool:
 
     def _initialize_pool(self):
         for _ in range(self.max_size):
-            # Prefer explicit host if provided, else use service name (useful in k8s)
-            host = settings.USER_SERVICE_HOST if self.service_name == settings.USER_SERVICE_NAME else self.service_name
+            host = self.service_url.split(":")[0]
+            
             channel = aio.insecure_channel(f"{host}:{self.service_port}")
             self.pool.append(channel)
         self.logger.info(
@@ -35,7 +36,8 @@ class ChannelPool:
         if not self.pool:
             self.logger.warning(
                 f"Not available channels in pool for {self.service_name}, creating new channel")
-            return aio.insecure_channel(f"{self.service_name}:{self.service_port}")
+            host = self.service_url.split(":")[0]
+            return aio.insecure_channel(f"{host}:{self.service_port}")
         channel = self.pool.popleft()
         return channel
 

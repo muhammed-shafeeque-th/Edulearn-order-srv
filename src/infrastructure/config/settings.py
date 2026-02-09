@@ -1,38 +1,47 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 class Settings(BaseSettings):
+    GRPC_PORT: int = 50056
+    API_PORT: int = 4004
     SERVICE_NAME: str = "OrderService"
     USER_SERVICE_NAME: str = "UserService"
-    USER_SERVICE_HOST: str = "localhost"
+    USER_SERVICE_GRPC: str = "user_srv:50052"
     USER_SERVICE_PORT: int = 50052
     
     COURSE_SERVICE_NAME: str = "CourseService"
-    COURSE_SERVICE_HOST: str = "localhost"
+    COURSE_SERVICE_GRPC: str = "course_srv:50053"
     COURSE_SERVICE_PORT: int = 50053
     
     SESSION_SERVICE_NAME: str = "SessionService"
-    SESSION_SERVICE_HOST: str = "localhost"
+    SESSION_SERVICE_GRPC: str = "localhost"
     SESSION_SERVICE_PORT: int = 50057
     
     DATABASE_URL_ASYNC: str = "postgresql+asyncpg://postgres:password@localhost:5433/order_service"
     DATABASE_URL_SYNC: str = "postgresql+psycopg2://postgres:password@localhost:5433/order_service"
     # DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5433/order_service"
-    KAFKA_BROKER: str = "localhost:9092"
+    
+    KAFKA_BROKER: str = "kafka:29092"
+    
     REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_TTL: int = 3600  # Cache TTL in seconds
+    REDIS_KEY_PREFIX: str = "edulearn:order:"
+    
     JAEGER_HOST: str = "localhost"
     JAEGER_PORT: int = 6831
     PROMETHEUS_PORT: int = 8000
     LOKI_URL: str = "http://localhost:3100"
+    
     JWT_SECRET: str = "your-secret-key"
-    GRPC_PORT: int = 50056
-    API_PORT: int = 4004
-    REDIS_TTL: int = 3600  # Cache TTL in seconds
+    
     MAX_CONNECTIONS: int = 100  # PostgreSQL connection pool max size
     KAFKA_CONSUMER_MAX_POLL_RECORDS: int = 100  # Batch size for Kafka consumer
     KAFKA_CONSUMER_GROUP: str = "order-service-group"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env" if os.getenv("DOCKER_ENV") != "true" else None,
+        env_file_encoding="utf-8", extra="ignore")
 
 
 

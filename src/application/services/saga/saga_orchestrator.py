@@ -1,13 +1,13 @@
 import logging
 from typing import Any
-from src.application.interfaces.logging_interface import LoggingInterface
-from src.application.interfaces.metrics_interface import MetricsInterface
+from src.application.interfaces.logging_interface import ILoggingService
+from src.application.interfaces.metrics_interface import IMetricsService
 from src.application.services.interfaces.saga_step import SagaStep
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
 class SagaOrchestrator:
-    def __init__(self, steps: list[SagaStep],  logging_service: LoggingInterface, metrics: MetricsInterface) -> None:
+    def __init__(self, steps: list[SagaStep],  logging_service: ILoggingService, metrics: IMetricsService) -> None:
         self.steps = steps
         self.metrics = metrics
         self.logger = logging_service.get_logger("SagaOrchestrator")

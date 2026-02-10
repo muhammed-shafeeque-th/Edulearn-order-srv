@@ -1,6 +1,10 @@
+myvenv/
+__pycache__/
 *.pyc
 *.pyo
-__pycache__/
+*.pyd
+*.log
+.venv/
 .git/
+.env
 tests/
-myvenv/

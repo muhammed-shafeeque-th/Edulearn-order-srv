@@ -1,4 +1,6 @@
-from src.application.dtos.order_payment_initiate_dto import OrderPaymentInitiatedDto
+from  datetime import datetime, timezone
+from uuid import uuid4
+from src.domain.events.order_payment_initiate_event import OrderPaymentInitiatedEventDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
@@ -25,27 +27,29 @@ class OrderPaymentInitiatedUseCase:
         self.metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
-    async def execute(self, dto: OrderPaymentInitiatedDto):
-        self.logger.info(f"Initiating payment for order {dto.order_id}")
+    async def execute(self, dto: OrderPaymentInitiatedEventDto):
+        payload = dto.payload
+        self.logger.info(f"Initiating payment for order {payload.order_id}")
 
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(dto.order_id, session)
+            order = await self.order_repository.find_by_id(payload.order_id, session)
             if not order:
                 raise OrderNotFoundException(
-                    f"Order not found: {dto.order_id}")
+                    f"Order not found: {payload.order_id}")
 
-            if not order.payment_details:
-                payment_details = PaymentDetails(
-                    payment_id=dto.payment_id,
-                    provider=dto.provider,
-                    provider_order_id=dto.provider_order_id,
+            if order.payment_details is None:
+                order.payment_details = PaymentDetails(
+                    id=str(uuid4()),
+                    payment_id=payload.payment_id,
+                    provider=payload.provider,
+                    provider_order_id=payload.provider_order_id,
                     payment_status="pending",
+                    updated_at=datetime.fromtimestamp(int(dto.timestamp) / 1000, tz=timezone.utc),
                 )
-                order.set_payment_details(payment_details)
-            else:
-                order.payment_details.setStatus("pending")
+                
+            order.mark_processing() 
 
             await self.order_repository.save(order, session)
 
-        self.logger.debug(f"✅ Payment initiated for order {dto.order_id}")
+        self.logger.debug(f"Payment initiated for order {payload.order_id}")
         return

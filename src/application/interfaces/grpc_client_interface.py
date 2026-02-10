@@ -1,4 +1,19 @@
 from abc import ABC, abstractmethod
+from typing import List, Literal, TypedDict
+
+
+CourseStatus = Literal["published", "unpublished", "deleted", "draft"]
+
+
+class CourseInfo(TypedDict):
+    course_id: str
+    status: CourseStatus
+    price: float
+    discount_price: float
+
+
+class CourseEnrollmentResult(TypedDict):
+    is_enrolled: bool
 
 
 class IUserServiceClient(ABC):
@@ -13,11 +28,15 @@ class IUserServiceClient(ABC):
 
 class ICourseServiceClient(ABC):
     @abstractmethod
-    async def get_course(self, course_id: str) -> dict:
+    async def get_course(self, course_id: str) -> CourseInfo:
         pass
 
     @abstractmethod
-    async def get_courses_by_ids(self, course_ids: list[str]) -> list[dict]:
+    async def is_user_enrolled_in_course(self, user_id: str, course_id: str) -> CourseEnrollmentResult:
+        pass
+
+    @abstractmethod
+    async def get_courses_by_ids(self, course_ids: list[str]) -> List[CourseInfo]:
         pass
 
     @abstractmethod

@@ -3,7 +3,14 @@
 import grpc
 import warnings
 
-from . import course_service_pb2 as course__service__pb2
+from .course.types import certificate_pb2 as course_dot_types_dot_certificate__pb2
+from .course.types import course_pb2 as course_dot_types_dot_course__pb2
+from .course.types import enrollment_pb2 as course_dot_types_dot_enrollment__pb2
+from .course.types import lesson_pb2 as course_dot_types_dot_lesson__pb2
+from .course.types import progress_pb2 as course_dot_types_dot_progress__pb2
+from .course.types import quiz_pb2 as course_dot_types_dot_quiz__pb2
+from .course.types import review_pb2 as course_dot_types_dot_review__pb2
+from .course.types import section_pb2 as course_dot_types_dot_section__pb2
 
 GRPC_GENERATED_VERSION = '1.65.1'
 GRPC_VERSION = grpc.__version__
@@ -40,204 +47,134 @@ class CourseServiceStub(object):
             channel: A grpc.Channel.
         """
         self.CreateCourse = channel.unary_unary(
-                '/course.CourseService/CreateCourse',
-                request_serializer=course__service__pb2.CreateCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CourseResponse.FromString,
+                '/course_service.CourseService/CreateCourse',
+                request_serializer=course_dot_types_dot_course__pb2.CreateCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
                 _registered_method=True)
         self.GetCourse = channel.unary_unary(
-                '/course.CourseService/GetCourse',
-                request_serializer=course__service__pb2.GetCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CourseResponse.FromString,
+                '/course_service.CourseService/GetCourse',
+                request_serializer=course_dot_types_dot_course__pb2.GetCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
                 _registered_method=True)
         self.GetCourseBySlug = channel.unary_unary(
-                '/course.CourseService/GetCourseBySlug',
-                request_serializer=course__service__pb2.GetCourseBySlugRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CourseResponse.FromString,
+                '/course_service.CourseService/GetCourseBySlug',
+                request_serializer=course_dot_types_dot_course__pb2.GetCourseBySlugRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
                 _registered_method=True)
-        self.GetAllCourse = channel.unary_unary(
-                '/course.CourseService/GetAllCourse',
-                request_serializer=course__service__pb2.GetAllCoursesRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CoursesResponse.FromString,
+        self.GetCourses = channel.unary_unary(
+                '/course_service.CourseService/GetCourses',
+                request_serializer=course_dot_types_dot_course__pb2.GetCoursesRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
                 _registered_method=True)
         self.UpdateCourse = channel.unary_unary(
-                '/course.CourseService/UpdateCourse',
-                request_serializer=course__service__pb2.UpdateCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CourseResponse.FromString,
+                '/course_service.CourseService/UpdateCourse',
+                request_serializer=course_dot_types_dot_course__pb2.UpdateCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
+                _registered_method=True)
+        self.PublishCourse = channel.unary_unary(
+                '/course_service.CourseService/PublishCourse',
+                request_serializer=course_dot_types_dot_course__pb2.PublishCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
+                _registered_method=True)
+        self.UnPublishCourse = channel.unary_unary(
+                '/course_service.CourseService/UnPublishCourse',
+                request_serializer=course_dot_types_dot_course__pb2.UnPublishCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CourseResponse.FromString,
                 _registered_method=True)
         self.DeleteCourse = channel.unary_unary(
-                '/course.CourseService/DeleteCourse',
-                request_serializer=course__service__pb2.DeleteCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteCourseResponse.FromString,
+                '/course_service.CourseService/DeleteCourse',
+                request_serializer=course_dot_types_dot_course__pb2.DeleteCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.DeleteCourseResponse.FromString,
                 _registered_method=True)
         self.GetCoursesByInstructor = channel.unary_unary(
-                '/course.CourseService/GetCoursesByInstructor',
-                request_serializer=course__service__pb2.GetCoursesByInstructorRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CoursesResponse.FromString,
+                '/course_service.CourseService/GetCoursesByInstructor',
+                request_serializer=course_dot_types_dot_course__pb2.GetCoursesByInstructorRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
                 _registered_method=True)
         self.GetEnrolledCourses = channel.unary_unary(
-                '/course.CourseService/GetEnrolledCourses',
-                request_serializer=course__service__pb2.GetEnrolledCoursesRequest.SerializeToString,
-                response_deserializer=course__service__pb2.CoursesResponse.FromString,
+                '/course_service.CourseService/GetEnrolledCourses',
+                request_serializer=course_dot_types_dot_course__pb2.GetEnrolledCoursesRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
                 _registered_method=True)
         self.GetCoursesByIds = channel.unary_unary(
-                '/course.CourseService/GetCoursesByIds',
-                request_serializer=course__service__pb2.GetCoursesByIdsRequest.SerializeToString,
-                response_deserializer=course__service__pb2.GetCoursesByIdsResponse.FromString,
+                '/course_service.CourseService/GetCoursesByIds',
+                request_serializer=course_dot_types_dot_course__pb2.GetCoursesByIdsRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_course__pb2.GetCoursesByIdsResponse.FromString,
                 _registered_method=True)
         self.CreateSection = channel.unary_unary(
-                '/course.CourseService/CreateSection',
-                request_serializer=course__service__pb2.CreateSectionRequest.SerializeToString,
-                response_deserializer=course__service__pb2.SectionResponse.FromString,
+                '/course_service.CourseService/CreateSection',
+                request_serializer=course_dot_types_dot_section__pb2.CreateSectionRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_section__pb2.SectionResponse.FromString,
                 _registered_method=True)
         self.GetSection = channel.unary_unary(
-                '/course.CourseService/GetSection',
-                request_serializer=course__service__pb2.GetSectionRequest.SerializeToString,
-                response_deserializer=course__service__pb2.SectionResponse.FromString,
+                '/course_service.CourseService/GetSection',
+                request_serializer=course_dot_types_dot_section__pb2.GetSectionRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_section__pb2.SectionResponse.FromString,
                 _registered_method=True)
         self.UpdateSection = channel.unary_unary(
-                '/course.CourseService/UpdateSection',
-                request_serializer=course__service__pb2.UpdateSectionRequest.SerializeToString,
-                response_deserializer=course__service__pb2.SectionResponse.FromString,
+                '/course_service.CourseService/UpdateSection',
+                request_serializer=course_dot_types_dot_section__pb2.UpdateSectionRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_section__pb2.SectionResponse.FromString,
                 _registered_method=True)
         self.DeleteSection = channel.unary_unary(
-                '/course.CourseService/DeleteSection',
-                request_serializer=course__service__pb2.DeleteSectionRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteSectionResponse.FromString,
+                '/course_service.CourseService/DeleteSection',
+                request_serializer=course_dot_types_dot_section__pb2.DeleteSectionRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_section__pb2.DeleteSectionResponse.FromString,
                 _registered_method=True)
         self.GetSectionsByCourse = channel.unary_unary(
-                '/course.CourseService/GetSectionsByCourse',
-                request_serializer=course__service__pb2.GetSectionsByCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.SectionsResponse.FromString,
+                '/course_service.CourseService/GetSectionsByCourse',
+                request_serializer=course_dot_types_dot_section__pb2.GetSectionsByCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_section__pb2.SectionsResponse.FromString,
                 _registered_method=True)
         self.CreateLesson = channel.unary_unary(
-                '/course.CourseService/CreateLesson',
-                request_serializer=course__service__pb2.CreateLessonRequest.SerializeToString,
-                response_deserializer=course__service__pb2.LessonResponse.FromString,
+                '/course_service.CourseService/CreateLesson',
+                request_serializer=course_dot_types_dot_lesson__pb2.CreateLessonRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
                 _registered_method=True)
         self.GetLesson = channel.unary_unary(
-                '/course.CourseService/GetLesson',
-                request_serializer=course__service__pb2.GetLessonRequest.SerializeToString,
-                response_deserializer=course__service__pb2.LessonResponse.FromString,
+                '/course_service.CourseService/GetLesson',
+                request_serializer=course_dot_types_dot_lesson__pb2.GetLessonRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
                 _registered_method=True)
         self.UpdateLesson = channel.unary_unary(
-                '/course.CourseService/UpdateLesson',
-                request_serializer=course__service__pb2.UpdateLessonRequest.SerializeToString,
-                response_deserializer=course__service__pb2.LessonResponse.FromString,
+                '/course_service.CourseService/UpdateLesson',
+                request_serializer=course_dot_types_dot_lesson__pb2.UpdateLessonRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
                 _registered_method=True)
         self.DeleteLesson = channel.unary_unary(
-                '/course.CourseService/DeleteLesson',
-                request_serializer=course__service__pb2.DeleteLessonRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteLessonResponse.FromString,
+                '/course_service.CourseService/DeleteLesson',
+                request_serializer=course_dot_types_dot_lesson__pb2.DeleteLessonRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_lesson__pb2.DeleteLessonResponse.FromString,
                 _registered_method=True)
         self.GetLessonsBySection = channel.unary_unary(
-                '/course.CourseService/GetLessonsBySection',
-                request_serializer=course__service__pb2.GetLessonsBySectionRequest.SerializeToString,
-                response_deserializer=course__service__pb2.LessonsResponse.FromString,
+                '/course_service.CourseService/GetLessonsBySection',
+                request_serializer=course_dot_types_dot_lesson__pb2.GetLessonsBySectionRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_lesson__pb2.LessonsResponse.FromString,
                 _registered_method=True)
         self.CreateQuiz = channel.unary_unary(
-                '/course.CourseService/CreateQuiz',
-                request_serializer=course__service__pb2.CreateQuizRequest.SerializeToString,
-                response_deserializer=course__service__pb2.QuizResponse.FromString,
+                '/course_service.CourseService/CreateQuiz',
+                request_serializer=course_dot_types_dot_quiz__pb2.CreateQuizRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
                 _registered_method=True)
         self.GetQuiz = channel.unary_unary(
-                '/course.CourseService/GetQuiz',
-                request_serializer=course__service__pb2.GetQuizRequest.SerializeToString,
-                response_deserializer=course__service__pb2.QuizResponse.FromString,
+                '/course_service.CourseService/GetQuiz',
+                request_serializer=course_dot_types_dot_quiz__pb2.GetQuizRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
                 _registered_method=True)
         self.UpdateQuiz = channel.unary_unary(
-                '/course.CourseService/UpdateQuiz',
-                request_serializer=course__service__pb2.UpdateQuizRequest.SerializeToString,
-                response_deserializer=course__service__pb2.QuizResponse.FromString,
+                '/course_service.CourseService/UpdateQuiz',
+                request_serializer=course_dot_types_dot_quiz__pb2.UpdateQuizRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
                 _registered_method=True)
         self.DeleteQuiz = channel.unary_unary(
-                '/course.CourseService/DeleteQuiz',
-                request_serializer=course__service__pb2.DeleteQuizRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteQuizResponse.FromString,
+                '/course_service.CourseService/DeleteQuiz',
+                request_serializer=course_dot_types_dot_quiz__pb2.DeleteQuizRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_quiz__pb2.DeleteQuizResponse.FromString,
                 _registered_method=True)
         self.GetQuizzesByCourse = channel.unary_unary(
-                '/course.CourseService/GetQuizzesByCourse',
-                request_serializer=course__service__pb2.GetQuizzesByCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.QuizzesResponse.FromString,
-                _registered_method=True)
-        self.CreateEnrollment = channel.unary_unary(
-                '/course.CourseService/CreateEnrollment',
-                request_serializer=course__service__pb2.CreateEnrollmentRequest.SerializeToString,
-                response_deserializer=course__service__pb2.EnrollmentResponse.FromString,
-                _registered_method=True)
-        self.GetEnrollment = channel.unary_unary(
-                '/course.CourseService/GetEnrollment',
-                request_serializer=course__service__pb2.GetEnrollmentRequest.SerializeToString,
-                response_deserializer=course__service__pb2.EnrollmentResponse.FromString,
-                _registered_method=True)
-        self.UpdateEnrollment = channel.unary_unary(
-                '/course.CourseService/UpdateEnrollment',
-                request_serializer=course__service__pb2.UpdateEnrollmentRequest.SerializeToString,
-                response_deserializer=course__service__pb2.EnrollmentResponse.FromString,
-                _registered_method=True)
-        self.DeleteEnrollment = channel.unary_unary(
-                '/course.CourseService/DeleteEnrollment',
-                request_serializer=course__service__pb2.DeleteEnrollmentRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteEnrollmentResponse.FromString,
-                _registered_method=True)
-        self.GetEnrollmentsByUser = channel.unary_unary(
-                '/course.CourseService/GetEnrollmentsByUser',
-                request_serializer=course__service__pb2.GetEnrollmentsByUserRequest.SerializeToString,
-                response_deserializer=course__service__pb2.EnrollmentsResponse.FromString,
-                _registered_method=True)
-        self.GetEnrollmentsByCourse = channel.unary_unary(
-                '/course.CourseService/GetEnrollmentsByCourse',
-                request_serializer=course__service__pb2.GetEnrollmentsByCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.EnrollmentsResponse.FromString,
-                _registered_method=True)
-        self.CreateProgress = channel.unary_unary(
-                '/course.CourseService/CreateProgress',
-                request_serializer=course__service__pb2.CreateProgressRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ProgressResponse.FromString,
-                _registered_method=True)
-        self.GetProgress = channel.unary_unary(
-                '/course.CourseService/GetProgress',
-                request_serializer=course__service__pb2.GetProgressRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ProgressResponse.FromString,
-                _registered_method=True)
-        self.UpdateProgress = channel.unary_unary(
-                '/course.CourseService/UpdateProgress',
-                request_serializer=course__service__pb2.UpdateProgressRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ProgressResponse.FromString,
-                _registered_method=True)
-        self.DeleteProgress = channel.unary_unary(
-                '/course.CourseService/DeleteProgress',
-                request_serializer=course__service__pb2.DeleteProgressRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteProgressResponse.FromString,
-                _registered_method=True)
-        self.GetProgressByEnrollment = channel.unary_unary(
-                '/course.CourseService/GetProgressByEnrollment',
-                request_serializer=course__service__pb2.GetProgressByEnrollmentRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ProgressesResponse.FromString,
-                _registered_method=True)
-        self.CreateReview = channel.unary_unary(
-                '/course.CourseService/CreateReview',
-                request_serializer=course__service__pb2.CreateReviewRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ReviewResponse.FromString,
-                _registered_method=True)
-        self.GetReview = channel.unary_unary(
-                '/course.CourseService/GetReview',
-                request_serializer=course__service__pb2.GetReviewRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ReviewResponse.FromString,
-                _registered_method=True)
-        self.UpdateReview = channel.unary_unary(
-                '/course.CourseService/UpdateReview',
-                request_serializer=course__service__pb2.UpdateReviewRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ReviewResponse.FromString,
-                _registered_method=True)
-        self.DeleteReview = channel.unary_unary(
-                '/course.CourseService/DeleteReview',
-                request_serializer=course__service__pb2.DeleteReviewRequest.SerializeToString,
-                response_deserializer=course__service__pb2.DeleteReviewResponse.FromString,
-                _registered_method=True)
-        self.GetReviewsByCourse = channel.unary_unary(
-                '/course.CourseService/GetReviewsByCourse',
-                request_serializer=course__service__pb2.GetReviewsByCourseRequest.SerializeToString,
-                response_deserializer=course__service__pb2.ReviewsResponse.FromString,
+                '/course_service.CourseService/GetQuizzesByCourse',
+                request_serializer=course_dot_types_dot_quiz__pb2.GetQuizzesByCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_quiz__pb2.QuizzesResponse.FromString,
                 _registered_method=True)
 
 
@@ -263,13 +200,25 @@ class CourseServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetAllCourse(self, request, context):
+    def GetCourses(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def UpdateCourse(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PublishCourse(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UnPublishCourse(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -294,8 +243,7 @@ class CourseServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetCoursesByIds(self, request, context):
-        """Get Courses by batch
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -393,14 +341,1001 @@ class CourseServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateEnrollment(self, request, context):
+
+def add_CourseServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'CreateCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.CreateCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'GetCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'GetCourseBySlug': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCourseBySlug,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetCourseBySlugRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'GetCourses': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCourses,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetCoursesRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CoursesListResponse.SerializeToString,
+            ),
+            'UpdateCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.UpdateCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'PublishCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.PublishCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.PublishCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'UnPublishCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.UnPublishCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.UnPublishCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CourseResponse.SerializeToString,
+            ),
+            'DeleteCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteCourse,
+                    request_deserializer=course_dot_types_dot_course__pb2.DeleteCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.DeleteCourseResponse.SerializeToString,
+            ),
+            'GetCoursesByInstructor': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCoursesByInstructor,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetCoursesByInstructorRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CoursesListResponse.SerializeToString,
+            ),
+            'GetEnrolledCourses': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetEnrolledCourses,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetEnrolledCoursesRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.CoursesListResponse.SerializeToString,
+            ),
+            'GetCoursesByIds': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCoursesByIds,
+                    request_deserializer=course_dot_types_dot_course__pb2.GetCoursesByIdsRequest.FromString,
+                    response_serializer=course_dot_types_dot_course__pb2.GetCoursesByIdsResponse.SerializeToString,
+            ),
+            'CreateSection': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateSection,
+                    request_deserializer=course_dot_types_dot_section__pb2.CreateSectionRequest.FromString,
+                    response_serializer=course_dot_types_dot_section__pb2.SectionResponse.SerializeToString,
+            ),
+            'GetSection': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSection,
+                    request_deserializer=course_dot_types_dot_section__pb2.GetSectionRequest.FromString,
+                    response_serializer=course_dot_types_dot_section__pb2.SectionResponse.SerializeToString,
+            ),
+            'UpdateSection': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateSection,
+                    request_deserializer=course_dot_types_dot_section__pb2.UpdateSectionRequest.FromString,
+                    response_serializer=course_dot_types_dot_section__pb2.SectionResponse.SerializeToString,
+            ),
+            'DeleteSection': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteSection,
+                    request_deserializer=course_dot_types_dot_section__pb2.DeleteSectionRequest.FromString,
+                    response_serializer=course_dot_types_dot_section__pb2.DeleteSectionResponse.SerializeToString,
+            ),
+            'GetSectionsByCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSectionsByCourse,
+                    request_deserializer=course_dot_types_dot_section__pb2.GetSectionsByCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_section__pb2.SectionsResponse.SerializeToString,
+            ),
+            'CreateLesson': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateLesson,
+                    request_deserializer=course_dot_types_dot_lesson__pb2.CreateLessonRequest.FromString,
+                    response_serializer=course_dot_types_dot_lesson__pb2.LessonResponse.SerializeToString,
+            ),
+            'GetLesson': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLesson,
+                    request_deserializer=course_dot_types_dot_lesson__pb2.GetLessonRequest.FromString,
+                    response_serializer=course_dot_types_dot_lesson__pb2.LessonResponse.SerializeToString,
+            ),
+            'UpdateLesson': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateLesson,
+                    request_deserializer=course_dot_types_dot_lesson__pb2.UpdateLessonRequest.FromString,
+                    response_serializer=course_dot_types_dot_lesson__pb2.LessonResponse.SerializeToString,
+            ),
+            'DeleteLesson': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteLesson,
+                    request_deserializer=course_dot_types_dot_lesson__pb2.DeleteLessonRequest.FromString,
+                    response_serializer=course_dot_types_dot_lesson__pb2.DeleteLessonResponse.SerializeToString,
+            ),
+            'GetLessonsBySection': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLessonsBySection,
+                    request_deserializer=course_dot_types_dot_lesson__pb2.GetLessonsBySectionRequest.FromString,
+                    response_serializer=course_dot_types_dot_lesson__pb2.LessonsResponse.SerializeToString,
+            ),
+            'CreateQuiz': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateQuiz,
+                    request_deserializer=course_dot_types_dot_quiz__pb2.CreateQuizRequest.FromString,
+                    response_serializer=course_dot_types_dot_quiz__pb2.QuizResponse.SerializeToString,
+            ),
+            'GetQuiz': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetQuiz,
+                    request_deserializer=course_dot_types_dot_quiz__pb2.GetQuizRequest.FromString,
+                    response_serializer=course_dot_types_dot_quiz__pb2.QuizResponse.SerializeToString,
+            ),
+            'UpdateQuiz': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateQuiz,
+                    request_deserializer=course_dot_types_dot_quiz__pb2.UpdateQuizRequest.FromString,
+                    response_serializer=course_dot_types_dot_quiz__pb2.QuizResponse.SerializeToString,
+            ),
+            'DeleteQuiz': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteQuiz,
+                    request_deserializer=course_dot_types_dot_quiz__pb2.DeleteQuizRequest.FromString,
+                    response_serializer=course_dot_types_dot_quiz__pb2.DeleteQuizResponse.SerializeToString,
+            ),
+            'GetQuizzesByCourse': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetQuizzesByCourse,
+                    request_deserializer=course_dot_types_dot_quiz__pb2.GetQuizzesByCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_quiz__pb2.QuizzesResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'course_service.CourseService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('course_service.CourseService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class CourseService(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def CreateCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/CreateCourse',
+            course_dot_types_dot_course__pb2.CreateCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetCourse',
+            course_dot_types_dot_course__pb2.GetCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCourseBySlug(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetCourseBySlug',
+            course_dot_types_dot_course__pb2.GetCourseBySlugRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCourses(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetCourses',
+            course_dot_types_dot_course__pb2.GetCoursesRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/UpdateCourse',
+            course_dot_types_dot_course__pb2.UpdateCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PublishCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/PublishCourse',
+            course_dot_types_dot_course__pb2.PublishCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UnPublishCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/UnPublishCourse',
+            course_dot_types_dot_course__pb2.UnPublishCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/DeleteCourse',
+            course_dot_types_dot_course__pb2.DeleteCourseRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.DeleteCourseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCoursesByInstructor(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetCoursesByInstructor',
+            course_dot_types_dot_course__pb2.GetCoursesByInstructorRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetEnrolledCourses(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetEnrolledCourses',
+            course_dot_types_dot_course__pb2.GetEnrolledCoursesRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.CoursesListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCoursesByIds(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetCoursesByIds',
+            course_dot_types_dot_course__pb2.GetCoursesByIdsRequest.SerializeToString,
+            course_dot_types_dot_course__pb2.GetCoursesByIdsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateSection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/CreateSection',
+            course_dot_types_dot_section__pb2.CreateSectionRequest.SerializeToString,
+            course_dot_types_dot_section__pb2.SectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetSection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetSection',
+            course_dot_types_dot_section__pb2.GetSectionRequest.SerializeToString,
+            course_dot_types_dot_section__pb2.SectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateSection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/UpdateSection',
+            course_dot_types_dot_section__pb2.UpdateSectionRequest.SerializeToString,
+            course_dot_types_dot_section__pb2.SectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteSection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/DeleteSection',
+            course_dot_types_dot_section__pb2.DeleteSectionRequest.SerializeToString,
+            course_dot_types_dot_section__pb2.DeleteSectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetSectionsByCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetSectionsByCourse',
+            course_dot_types_dot_section__pb2.GetSectionsByCourseRequest.SerializeToString,
+            course_dot_types_dot_section__pb2.SectionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateLesson(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/CreateLesson',
+            course_dot_types_dot_lesson__pb2.CreateLessonRequest.SerializeToString,
+            course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetLesson(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetLesson',
+            course_dot_types_dot_lesson__pb2.GetLessonRequest.SerializeToString,
+            course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateLesson(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/UpdateLesson',
+            course_dot_types_dot_lesson__pb2.UpdateLessonRequest.SerializeToString,
+            course_dot_types_dot_lesson__pb2.LessonResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteLesson(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/DeleteLesson',
+            course_dot_types_dot_lesson__pb2.DeleteLessonRequest.SerializeToString,
+            course_dot_types_dot_lesson__pb2.DeleteLessonResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetLessonsBySection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetLessonsBySection',
+            course_dot_types_dot_lesson__pb2.GetLessonsBySectionRequest.SerializeToString,
+            course_dot_types_dot_lesson__pb2.LessonsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateQuiz(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/CreateQuiz',
+            course_dot_types_dot_quiz__pb2.CreateQuizRequest.SerializeToString,
+            course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetQuiz(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetQuiz',
+            course_dot_types_dot_quiz__pb2.GetQuizRequest.SerializeToString,
+            course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateQuiz(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/UpdateQuiz',
+            course_dot_types_dot_quiz__pb2.UpdateQuizRequest.SerializeToString,
+            course_dot_types_dot_quiz__pb2.QuizResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteQuiz(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/DeleteQuiz',
+            course_dot_types_dot_quiz__pb2.DeleteQuizRequest.SerializeToString,
+            course_dot_types_dot_quiz__pb2.DeleteQuizResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetQuizzesByCourse(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.CourseService/GetQuizzesByCourse',
+            course_dot_types_dot_quiz__pb2.GetQuizzesByCourseRequest.SerializeToString,
+            course_dot_types_dot_quiz__pb2.QuizzesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class EnrollmentServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.GetEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/GetEnrollment',
+                request_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentResponse.FromString,
+                _registered_method=True)
+        self.GetEnrollmentDetails = channel.unary_unary(
+                '/course_service.EnrollmentService/GetEnrollmentDetails',
+                request_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentDetailsResponse.FromString,
+                _registered_method=True)
+        self.UpdateEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/UpdateEnrollment',
+                request_serializer=course_dot_types_dot_enrollment__pb2.UpdateEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.EnrollmentResponse.FromString,
+                _registered_method=True)
+        self.DeleteEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/DeleteEnrollment',
+                request_serializer=course_dot_types_dot_enrollment__pb2.DeleteEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.DeleteEnrollmentResponse.FromString,
+                _registered_method=True)
+        self.CheckEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/CheckEnrollment',
+                request_serializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.FromString,
+                _registered_method=True)
+        self.CheckCourseEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/CheckCourseEnrollment',
+                request_serializer=course_dot_types_dot_enrollment__pb2.CheckCourseEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.FromString,
+                _registered_method=True)
+        self.GetEnrollmentsByUser = channel.unary_unary(
+                '/course_service.EnrollmentService/GetEnrollmentsByUser',
+                request_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentsByUserRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.FromString,
+                _registered_method=True)
+        self.GetEnrollmentsByCourse = channel.unary_unary(
+                '/course_service.EnrollmentService/GetEnrollmentsByCourse',
+                request_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentsByCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.FromString,
+                _registered_method=True)
+        self.CreateProgress = channel.unary_unary(
+                '/course_service.EnrollmentService/CreateProgress',
+                request_serializer=course_dot_types_dot_progress__pb2.CreateProgressRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.ProgressResponse.FromString,
+                _registered_method=True)
+        self.GetProgress = channel.unary_unary(
+                '/course_service.EnrollmentService/GetProgress',
+                request_serializer=course_dot_types_dot_progress__pb2.GetProgressRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.ProgressResponse.FromString,
+                _registered_method=True)
+        self.UpdateLessonProgress = channel.unary_unary(
+                '/course_service.EnrollmentService/UpdateLessonProgress',
+                request_serializer=course_dot_types_dot_progress__pb2.UpdateLessonProgressRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.UpdateLessonProgressResponse.FromString,
+                _registered_method=True)
+        self.SubmitQuizProgress = channel.unary_unary(
+                '/course_service.EnrollmentService/SubmitQuizProgress',
+                request_serializer=course_dot_types_dot_progress__pb2.SubmitQuizAttemptRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.SubmitQuizAttemptResponse.FromString,
+                _registered_method=True)
+        self.DeleteProgress = channel.unary_unary(
+                '/course_service.EnrollmentService/DeleteProgress',
+                request_serializer=course_dot_types_dot_progress__pb2.DeleteProgressRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.DeleteProgressResponse.FromString,
+                _registered_method=True)
+        self.GetProgressByEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/GetProgressByEnrollment',
+                request_serializer=course_dot_types_dot_progress__pb2.GetProgressByEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_progress__pb2.EnrollmentProgressResponse.FromString,
+                _registered_method=True)
+        self.SubmitCourseReview = channel.unary_unary(
+                '/course_service.EnrollmentService/SubmitCourseReview',
+                request_serializer=course_dot_types_dot_review__pb2.SubmitCourseReviewRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.ReviewResponse.FromString,
+                _registered_method=True)
+        self.GetReview = channel.unary_unary(
+                '/course_service.EnrollmentService/GetReview',
+                request_serializer=course_dot_types_dot_review__pb2.GetReviewRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.ReviewResponse.FromString,
+                _registered_method=True)
+        self.GetReviewByEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/GetReviewByEnrollment',
+                request_serializer=course_dot_types_dot_review__pb2.GetReviewByEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.ReviewResponse.FromString,
+                _registered_method=True)
+        self.UpdateReview = channel.unary_unary(
+                '/course_service.EnrollmentService/UpdateReview',
+                request_serializer=course_dot_types_dot_review__pb2.UpdateReviewRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.ReviewResponse.FromString,
+                _registered_method=True)
+        self.DeleteReview = channel.unary_unary(
+                '/course_service.EnrollmentService/DeleteReview',
+                request_serializer=course_dot_types_dot_review__pb2.DeleteReviewRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.DeleteReviewResponse.FromString,
+                _registered_method=True)
+        self.GetReviewsByCourse = channel.unary_unary(
+                '/course_service.EnrollmentService/GetReviewsByCourse',
+                request_serializer=course_dot_types_dot_review__pb2.GetReviewsByCourseRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_review__pb2.ReviewsResponse.FromString,
+                _registered_method=True)
+        self.GetCertificate = channel.unary_unary(
+                '/course_service.EnrollmentService/GetCertificate',
+                request_serializer=course_dot_types_dot_certificate__pb2.GetCertificateRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+                _registered_method=True)
+        self.GetCertificateByEnrollment = channel.unary_unary(
+                '/course_service.EnrollmentService/GetCertificateByEnrollment',
+                request_serializer=course_dot_types_dot_certificate__pb2.GetCertificateByEnrollmentRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+                _registered_method=True)
+        self.GetCertificatesByUser = channel.unary_unary(
+                '/course_service.EnrollmentService/GetCertificatesByUser',
+                request_serializer=course_dot_types_dot_certificate__pb2.GetCertificatesByUserRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_certificate__pb2.CertificatesResponse.FromString,
+                _registered_method=True)
+        self.GenerateCertificate = channel.unary_unary(
+                '/course_service.EnrollmentService/GenerateCertificate',
+                request_serializer=course_dot_types_dot_certificate__pb2.GenerateCertificateRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+                _registered_method=True)
+        self.DownloadCertificate = channel.unary_stream(
+                '/course_service.EnrollmentService/DownloadCertificate',
+                request_serializer=course_dot_types_dot_certificate__pb2.DownloadCertificateRequest.SerializeToString,
+                response_deserializer=course_dot_types_dot_certificate__pb2.CertificatePDFChunk.FromString,
+                _registered_method=True)
+
+
+class EnrollmentServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def GetEnrollment(self, request, context):
         """Enrollment CRUD
+        rpc CreateEnrollment(course.enrollment.CreateEnrollmentRequest) returns (course.enrollment.EnrollmentResponse);
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetEnrollment(self, request, context):
+    def GetEnrollmentDetails(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -413,6 +1348,18 @@ class CourseServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def DeleteEnrollment(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckEnrollment(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckCourseEnrollment(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -443,7 +1390,13 @@ class CourseServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UpdateProgress(self, request, context):
+    def UpdateLessonProgress(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SubmitQuizProgress(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -461,7 +1414,7 @@ class CourseServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateReview(self, request, context):
+    def SubmitCourseReview(self, request, context):
         """Review CRUD
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -469,6 +1422,12 @@ class CourseServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetReview(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetReviewByEnrollment(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -492,894 +1451,175 @@ class CourseServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetCertificate(self, request, context):
+        """CERTIFICATE CRUD
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
-def add_CourseServiceServicer_to_server(servicer, server):
+    def GetCertificateByEnrollment(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCertificatesByUser(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GenerateCertificate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DownloadCertificate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_EnrollmentServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CreateCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateCourse,
-                    request_deserializer=course__service__pb2.CreateCourseRequest.FromString,
-                    response_serializer=course__service__pb2.CourseResponse.SerializeToString,
-            ),
-            'GetCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCourse,
-                    request_deserializer=course__service__pb2.GetCourseRequest.FromString,
-                    response_serializer=course__service__pb2.CourseResponse.SerializeToString,
-            ),
-            'GetCourseBySlug': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCourseBySlug,
-                    request_deserializer=course__service__pb2.GetCourseBySlugRequest.FromString,
-                    response_serializer=course__service__pb2.CourseResponse.SerializeToString,
-            ),
-            'GetAllCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAllCourse,
-                    request_deserializer=course__service__pb2.GetAllCoursesRequest.FromString,
-                    response_serializer=course__service__pb2.CoursesResponse.SerializeToString,
-            ),
-            'UpdateCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateCourse,
-                    request_deserializer=course__service__pb2.UpdateCourseRequest.FromString,
-                    response_serializer=course__service__pb2.CourseResponse.SerializeToString,
-            ),
-            'DeleteCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteCourse,
-                    request_deserializer=course__service__pb2.DeleteCourseRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteCourseResponse.SerializeToString,
-            ),
-            'GetCoursesByInstructor': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCoursesByInstructor,
-                    request_deserializer=course__service__pb2.GetCoursesByInstructorRequest.FromString,
-                    response_serializer=course__service__pb2.CoursesResponse.SerializeToString,
-            ),
-            'GetEnrolledCourses': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetEnrolledCourses,
-                    request_deserializer=course__service__pb2.GetEnrolledCoursesRequest.FromString,
-                    response_serializer=course__service__pb2.CoursesResponse.SerializeToString,
-            ),
-            'GetCoursesByIds': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCoursesByIds,
-                    request_deserializer=course__service__pb2.GetCoursesByIdsRequest.FromString,
-                    response_serializer=course__service__pb2.GetCoursesByIdsResponse.SerializeToString,
-            ),
-            'CreateSection': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateSection,
-                    request_deserializer=course__service__pb2.CreateSectionRequest.FromString,
-                    response_serializer=course__service__pb2.SectionResponse.SerializeToString,
-            ),
-            'GetSection': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSection,
-                    request_deserializer=course__service__pb2.GetSectionRequest.FromString,
-                    response_serializer=course__service__pb2.SectionResponse.SerializeToString,
-            ),
-            'UpdateSection': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateSection,
-                    request_deserializer=course__service__pb2.UpdateSectionRequest.FromString,
-                    response_serializer=course__service__pb2.SectionResponse.SerializeToString,
-            ),
-            'DeleteSection': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteSection,
-                    request_deserializer=course__service__pb2.DeleteSectionRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteSectionResponse.SerializeToString,
-            ),
-            'GetSectionsByCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSectionsByCourse,
-                    request_deserializer=course__service__pb2.GetSectionsByCourseRequest.FromString,
-                    response_serializer=course__service__pb2.SectionsResponse.SerializeToString,
-            ),
-            'CreateLesson': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateLesson,
-                    request_deserializer=course__service__pb2.CreateLessonRequest.FromString,
-                    response_serializer=course__service__pb2.LessonResponse.SerializeToString,
-            ),
-            'GetLesson': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLesson,
-                    request_deserializer=course__service__pb2.GetLessonRequest.FromString,
-                    response_serializer=course__service__pb2.LessonResponse.SerializeToString,
-            ),
-            'UpdateLesson': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateLesson,
-                    request_deserializer=course__service__pb2.UpdateLessonRequest.FromString,
-                    response_serializer=course__service__pb2.LessonResponse.SerializeToString,
-            ),
-            'DeleteLesson': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteLesson,
-                    request_deserializer=course__service__pb2.DeleteLessonRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteLessonResponse.SerializeToString,
-            ),
-            'GetLessonsBySection': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLessonsBySection,
-                    request_deserializer=course__service__pb2.GetLessonsBySectionRequest.FromString,
-                    response_serializer=course__service__pb2.LessonsResponse.SerializeToString,
-            ),
-            'CreateQuiz': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateQuiz,
-                    request_deserializer=course__service__pb2.CreateQuizRequest.FromString,
-                    response_serializer=course__service__pb2.QuizResponse.SerializeToString,
-            ),
-            'GetQuiz': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetQuiz,
-                    request_deserializer=course__service__pb2.GetQuizRequest.FromString,
-                    response_serializer=course__service__pb2.QuizResponse.SerializeToString,
-            ),
-            'UpdateQuiz': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateQuiz,
-                    request_deserializer=course__service__pb2.UpdateQuizRequest.FromString,
-                    response_serializer=course__service__pb2.QuizResponse.SerializeToString,
-            ),
-            'DeleteQuiz': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteQuiz,
-                    request_deserializer=course__service__pb2.DeleteQuizRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteQuizResponse.SerializeToString,
-            ),
-            'GetQuizzesByCourse': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetQuizzesByCourse,
-                    request_deserializer=course__service__pb2.GetQuizzesByCourseRequest.FromString,
-                    response_serializer=course__service__pb2.QuizzesResponse.SerializeToString,
-            ),
-            'CreateEnrollment': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateEnrollment,
-                    request_deserializer=course__service__pb2.CreateEnrollmentRequest.FromString,
-                    response_serializer=course__service__pb2.EnrollmentResponse.SerializeToString,
-            ),
             'GetEnrollment': grpc.unary_unary_rpc_method_handler(
                     servicer.GetEnrollment,
-                    request_deserializer=course__service__pb2.GetEnrollmentRequest.FromString,
-                    response_serializer=course__service__pb2.EnrollmentResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentResponse.SerializeToString,
+            ),
+            'GetEnrollmentDetails': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetEnrollmentDetails,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentDetailsResponse.SerializeToString,
             ),
             'UpdateEnrollment': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateEnrollment,
-                    request_deserializer=course__service__pb2.UpdateEnrollmentRequest.FromString,
-                    response_serializer=course__service__pb2.EnrollmentResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.UpdateEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.EnrollmentResponse.SerializeToString,
             ),
             'DeleteEnrollment': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteEnrollment,
-                    request_deserializer=course__service__pb2.DeleteEnrollmentRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteEnrollmentResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.DeleteEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.DeleteEnrollmentResponse.SerializeToString,
+            ),
+            'CheckEnrollment': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckEnrollment,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.SerializeToString,
+            ),
+            'CheckCourseEnrollment': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckCourseEnrollment,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.CheckCourseEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.SerializeToString,
             ),
             'GetEnrollmentsByUser': grpc.unary_unary_rpc_method_handler(
                     servicer.GetEnrollmentsByUser,
-                    request_deserializer=course__service__pb2.GetEnrollmentsByUserRequest.FromString,
-                    response_serializer=course__service__pb2.EnrollmentsResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentsByUserRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.SerializeToString,
             ),
             'GetEnrollmentsByCourse': grpc.unary_unary_rpc_method_handler(
                     servicer.GetEnrollmentsByCourse,
-                    request_deserializer=course__service__pb2.GetEnrollmentsByCourseRequest.FromString,
-                    response_serializer=course__service__pb2.EnrollmentsResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_enrollment__pb2.GetEnrollmentsByCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.SerializeToString,
             ),
             'CreateProgress': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateProgress,
-                    request_deserializer=course__service__pb2.CreateProgressRequest.FromString,
-                    response_serializer=course__service__pb2.ProgressResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_progress__pb2.CreateProgressRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.ProgressResponse.SerializeToString,
             ),
             'GetProgress': grpc.unary_unary_rpc_method_handler(
                     servicer.GetProgress,
-                    request_deserializer=course__service__pb2.GetProgressRequest.FromString,
-                    response_serializer=course__service__pb2.ProgressResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_progress__pb2.GetProgressRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.ProgressResponse.SerializeToString,
             ),
-            'UpdateProgress': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateProgress,
-                    request_deserializer=course__service__pb2.UpdateProgressRequest.FromString,
-                    response_serializer=course__service__pb2.ProgressResponse.SerializeToString,
+            'UpdateLessonProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateLessonProgress,
+                    request_deserializer=course_dot_types_dot_progress__pb2.UpdateLessonProgressRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.UpdateLessonProgressResponse.SerializeToString,
+            ),
+            'SubmitQuizProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitQuizProgress,
+                    request_deserializer=course_dot_types_dot_progress__pb2.SubmitQuizAttemptRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.SubmitQuizAttemptResponse.SerializeToString,
             ),
             'DeleteProgress': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteProgress,
-                    request_deserializer=course__service__pb2.DeleteProgressRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteProgressResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_progress__pb2.DeleteProgressRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.DeleteProgressResponse.SerializeToString,
             ),
             'GetProgressByEnrollment': grpc.unary_unary_rpc_method_handler(
                     servicer.GetProgressByEnrollment,
-                    request_deserializer=course__service__pb2.GetProgressByEnrollmentRequest.FromString,
-                    response_serializer=course__service__pb2.ProgressesResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_progress__pb2.GetProgressByEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_progress__pb2.EnrollmentProgressResponse.SerializeToString,
             ),
-            'CreateReview': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateReview,
-                    request_deserializer=course__service__pb2.CreateReviewRequest.FromString,
-                    response_serializer=course__service__pb2.ReviewResponse.SerializeToString,
+            'SubmitCourseReview': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitCourseReview,
+                    request_deserializer=course_dot_types_dot_review__pb2.SubmitCourseReviewRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.ReviewResponse.SerializeToString,
             ),
             'GetReview': grpc.unary_unary_rpc_method_handler(
                     servicer.GetReview,
-                    request_deserializer=course__service__pb2.GetReviewRequest.FromString,
-                    response_serializer=course__service__pb2.ReviewResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_review__pb2.GetReviewRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.ReviewResponse.SerializeToString,
+            ),
+            'GetReviewByEnrollment': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetReviewByEnrollment,
+                    request_deserializer=course_dot_types_dot_review__pb2.GetReviewByEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.ReviewResponse.SerializeToString,
             ),
             'UpdateReview': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateReview,
-                    request_deserializer=course__service__pb2.UpdateReviewRequest.FromString,
-                    response_serializer=course__service__pb2.ReviewResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_review__pb2.UpdateReviewRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.ReviewResponse.SerializeToString,
             ),
             'DeleteReview': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteReview,
-                    request_deserializer=course__service__pb2.DeleteReviewRequest.FromString,
-                    response_serializer=course__service__pb2.DeleteReviewResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_review__pb2.DeleteReviewRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.DeleteReviewResponse.SerializeToString,
             ),
             'GetReviewsByCourse': grpc.unary_unary_rpc_method_handler(
                     servicer.GetReviewsByCourse,
-                    request_deserializer=course__service__pb2.GetReviewsByCourseRequest.FromString,
-                    response_serializer=course__service__pb2.ReviewsResponse.SerializeToString,
+                    request_deserializer=course_dot_types_dot_review__pb2.GetReviewsByCourseRequest.FromString,
+                    response_serializer=course_dot_types_dot_review__pb2.ReviewsResponse.SerializeToString,
+            ),
+            'GetCertificate': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCertificate,
+                    request_deserializer=course_dot_types_dot_certificate__pb2.GetCertificateRequest.FromString,
+                    response_serializer=course_dot_types_dot_certificate__pb2.CertificateResponse.SerializeToString,
+            ),
+            'GetCertificateByEnrollment': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCertificateByEnrollment,
+                    request_deserializer=course_dot_types_dot_certificate__pb2.GetCertificateByEnrollmentRequest.FromString,
+                    response_serializer=course_dot_types_dot_certificate__pb2.CertificateResponse.SerializeToString,
+            ),
+            'GetCertificatesByUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCertificatesByUser,
+                    request_deserializer=course_dot_types_dot_certificate__pb2.GetCertificatesByUserRequest.FromString,
+                    response_serializer=course_dot_types_dot_certificate__pb2.CertificatesResponse.SerializeToString,
+            ),
+            'GenerateCertificate': grpc.unary_unary_rpc_method_handler(
+                    servicer.GenerateCertificate,
+                    request_deserializer=course_dot_types_dot_certificate__pb2.GenerateCertificateRequest.FromString,
+                    response_serializer=course_dot_types_dot_certificate__pb2.CertificateResponse.SerializeToString,
+            ),
+            'DownloadCertificate': grpc.unary_stream_rpc_method_handler(
+                    servicer.DownloadCertificate,
+                    request_deserializer=course_dot_types_dot_certificate__pb2.DownloadCertificateRequest.FromString,
+                    response_serializer=course_dot_types_dot_certificate__pb2.CertificatePDFChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'course.CourseService', rpc_method_handlers)
+            'course_service.EnrollmentService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('course.CourseService', rpc_method_handlers)
+    server.add_registered_method_handlers('course_service.EnrollmentService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class CourseService(object):
+class EnrollmentService(object):
     """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def CreateCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/CreateCourse',
-            course__service__pb2.CreateCourseRequest.SerializeToString,
-            course__service__pb2.CourseResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetCourse',
-            course__service__pb2.GetCourseRequest.SerializeToString,
-            course__service__pb2.CourseResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCourseBySlug(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetCourseBySlug',
-            course__service__pb2.GetCourseBySlugRequest.SerializeToString,
-            course__service__pb2.CourseResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetAllCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetAllCourse',
-            course__service__pb2.GetAllCoursesRequest.SerializeToString,
-            course__service__pb2.CoursesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/UpdateCourse',
-            course__service__pb2.UpdateCourseRequest.SerializeToString,
-            course__service__pb2.CourseResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/DeleteCourse',
-            course__service__pb2.DeleteCourseRequest.SerializeToString,
-            course__service__pb2.DeleteCourseResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCoursesByInstructor(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetCoursesByInstructor',
-            course__service__pb2.GetCoursesByInstructorRequest.SerializeToString,
-            course__service__pb2.CoursesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetEnrolledCourses(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetEnrolledCourses',
-            course__service__pb2.GetEnrolledCoursesRequest.SerializeToString,
-            course__service__pb2.CoursesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetCoursesByIds(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetCoursesByIds',
-            course__service__pb2.GetCoursesByIdsRequest.SerializeToString,
-            course__service__pb2.GetCoursesByIdsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateSection(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/CreateSection',
-            course__service__pb2.CreateSectionRequest.SerializeToString,
-            course__service__pb2.SectionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetSection(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetSection',
-            course__service__pb2.GetSectionRequest.SerializeToString,
-            course__service__pb2.SectionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateSection(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/UpdateSection',
-            course__service__pb2.UpdateSectionRequest.SerializeToString,
-            course__service__pb2.SectionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteSection(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/DeleteSection',
-            course__service__pb2.DeleteSectionRequest.SerializeToString,
-            course__service__pb2.DeleteSectionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetSectionsByCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetSectionsByCourse',
-            course__service__pb2.GetSectionsByCourseRequest.SerializeToString,
-            course__service__pb2.SectionsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateLesson(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/CreateLesson',
-            course__service__pb2.CreateLessonRequest.SerializeToString,
-            course__service__pb2.LessonResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetLesson(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetLesson',
-            course__service__pb2.GetLessonRequest.SerializeToString,
-            course__service__pb2.LessonResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateLesson(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/UpdateLesson',
-            course__service__pb2.UpdateLessonRequest.SerializeToString,
-            course__service__pb2.LessonResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteLesson(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/DeleteLesson',
-            course__service__pb2.DeleteLessonRequest.SerializeToString,
-            course__service__pb2.DeleteLessonResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetLessonsBySection(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetLessonsBySection',
-            course__service__pb2.GetLessonsBySectionRequest.SerializeToString,
-            course__service__pb2.LessonsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateQuiz(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/CreateQuiz',
-            course__service__pb2.CreateQuizRequest.SerializeToString,
-            course__service__pb2.QuizResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetQuiz(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetQuiz',
-            course__service__pb2.GetQuizRequest.SerializeToString,
-            course__service__pb2.QuizResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def UpdateQuiz(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/UpdateQuiz',
-            course__service__pb2.UpdateQuizRequest.SerializeToString,
-            course__service__pb2.QuizResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteQuiz(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/DeleteQuiz',
-            course__service__pb2.DeleteQuizRequest.SerializeToString,
-            course__service__pb2.DeleteQuizResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetQuizzesByCourse(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/GetQuizzesByCourse',
-            course__service__pb2.GetQuizzesByCourseRequest.SerializeToString,
-            course__service__pb2.QuizzesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateEnrollment(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/course.CourseService/CreateEnrollment',
-            course__service__pb2.CreateEnrollmentRequest.SerializeToString,
-            course__service__pb2.EnrollmentResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
 
     @staticmethod
     def GetEnrollment(request,
@@ -1395,9 +1635,36 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetEnrollment',
-            course__service__pb2.GetEnrollmentRequest.SerializeToString,
-            course__service__pb2.EnrollmentResponse.FromString,
+            '/course_service.EnrollmentService/GetEnrollment',
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetEnrollmentDetails(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GetEnrollmentDetails',
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentDetailsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1422,9 +1689,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/UpdateEnrollment',
-            course__service__pb2.UpdateEnrollmentRequest.SerializeToString,
-            course__service__pb2.EnrollmentResponse.FromString,
+            '/course_service.EnrollmentService/UpdateEnrollment',
+            course_dot_types_dot_enrollment__pb2.UpdateEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.EnrollmentResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1449,9 +1716,63 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/DeleteEnrollment',
-            course__service__pb2.DeleteEnrollmentRequest.SerializeToString,
-            course__service__pb2.DeleteEnrollmentResponse.FromString,
+            '/course_service.EnrollmentService/DeleteEnrollment',
+            course_dot_types_dot_enrollment__pb2.DeleteEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.DeleteEnrollmentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckEnrollment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/CheckEnrollment',
+            course_dot_types_dot_enrollment__pb2.CheckEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckCourseEnrollment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/CheckCourseEnrollment',
+            course_dot_types_dot_enrollment__pb2.CheckCourseEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.CheckEnrollmentResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1476,9 +1797,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetEnrollmentsByUser',
-            course__service__pb2.GetEnrollmentsByUserRequest.SerializeToString,
-            course__service__pb2.EnrollmentsResponse.FromString,
+            '/course_service.EnrollmentService/GetEnrollmentsByUser',
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentsByUserRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1503,9 +1824,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetEnrollmentsByCourse',
-            course__service__pb2.GetEnrollmentsByCourseRequest.SerializeToString,
-            course__service__pb2.EnrollmentsResponse.FromString,
+            '/course_service.EnrollmentService/GetEnrollmentsByCourse',
+            course_dot_types_dot_enrollment__pb2.GetEnrollmentsByCourseRequest.SerializeToString,
+            course_dot_types_dot_enrollment__pb2.EnrollmentsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1530,9 +1851,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/CreateProgress',
-            course__service__pb2.CreateProgressRequest.SerializeToString,
-            course__service__pb2.ProgressResponse.FromString,
+            '/course_service.EnrollmentService/CreateProgress',
+            course_dot_types_dot_progress__pb2.CreateProgressRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.ProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1557,9 +1878,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetProgress',
-            course__service__pb2.GetProgressRequest.SerializeToString,
-            course__service__pb2.ProgressResponse.FromString,
+            '/course_service.EnrollmentService/GetProgress',
+            course_dot_types_dot_progress__pb2.GetProgressRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.ProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1571,7 +1892,7 @@ class CourseService(object):
             _registered_method=True)
 
     @staticmethod
-    def UpdateProgress(request,
+    def UpdateLessonProgress(request,
             target,
             options=(),
             channel_credentials=None,
@@ -1584,9 +1905,36 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/UpdateProgress',
-            course__service__pb2.UpdateProgressRequest.SerializeToString,
-            course__service__pb2.ProgressResponse.FromString,
+            '/course_service.EnrollmentService/UpdateLessonProgress',
+            course_dot_types_dot_progress__pb2.UpdateLessonProgressRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.UpdateLessonProgressResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SubmitQuizProgress(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/SubmitQuizProgress',
+            course_dot_types_dot_progress__pb2.SubmitQuizAttemptRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.SubmitQuizAttemptResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1611,9 +1959,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/DeleteProgress',
-            course__service__pb2.DeleteProgressRequest.SerializeToString,
-            course__service__pb2.DeleteProgressResponse.FromString,
+            '/course_service.EnrollmentService/DeleteProgress',
+            course_dot_types_dot_progress__pb2.DeleteProgressRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.DeleteProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1638,9 +1986,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetProgressByEnrollment',
-            course__service__pb2.GetProgressByEnrollmentRequest.SerializeToString,
-            course__service__pb2.ProgressesResponse.FromString,
+            '/course_service.EnrollmentService/GetProgressByEnrollment',
+            course_dot_types_dot_progress__pb2.GetProgressByEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_progress__pb2.EnrollmentProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1652,7 +2000,7 @@ class CourseService(object):
             _registered_method=True)
 
     @staticmethod
-    def CreateReview(request,
+    def SubmitCourseReview(request,
             target,
             options=(),
             channel_credentials=None,
@@ -1665,9 +2013,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/CreateReview',
-            course__service__pb2.CreateReviewRequest.SerializeToString,
-            course__service__pb2.ReviewResponse.FromString,
+            '/course_service.EnrollmentService/SubmitCourseReview',
+            course_dot_types_dot_review__pb2.SubmitCourseReviewRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.ReviewResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1692,9 +2040,36 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetReview',
-            course__service__pb2.GetReviewRequest.SerializeToString,
-            course__service__pb2.ReviewResponse.FromString,
+            '/course_service.EnrollmentService/GetReview',
+            course_dot_types_dot_review__pb2.GetReviewRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.ReviewResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetReviewByEnrollment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GetReviewByEnrollment',
+            course_dot_types_dot_review__pb2.GetReviewByEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.ReviewResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1719,9 +2094,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/UpdateReview',
-            course__service__pb2.UpdateReviewRequest.SerializeToString,
-            course__service__pb2.ReviewResponse.FromString,
+            '/course_service.EnrollmentService/UpdateReview',
+            course_dot_types_dot_review__pb2.UpdateReviewRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.ReviewResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1746,9 +2121,9 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/DeleteReview',
-            course__service__pb2.DeleteReviewRequest.SerializeToString,
-            course__service__pb2.DeleteReviewResponse.FromString,
+            '/course_service.EnrollmentService/DeleteReview',
+            course_dot_types_dot_review__pb2.DeleteReviewRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.DeleteReviewResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1773,9 +2148,144 @@ class CourseService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/course.CourseService/GetReviewsByCourse',
-            course__service__pb2.GetReviewsByCourseRequest.SerializeToString,
-            course__service__pb2.ReviewsResponse.FromString,
+            '/course_service.EnrollmentService/GetReviewsByCourse',
+            course_dot_types_dot_review__pb2.GetReviewsByCourseRequest.SerializeToString,
+            course_dot_types_dot_review__pb2.ReviewsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCertificate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GetCertificate',
+            course_dot_types_dot_certificate__pb2.GetCertificateRequest.SerializeToString,
+            course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCertificateByEnrollment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GetCertificateByEnrollment',
+            course_dot_types_dot_certificate__pb2.GetCertificateByEnrollmentRequest.SerializeToString,
+            course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCertificatesByUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GetCertificatesByUser',
+            course_dot_types_dot_certificate__pb2.GetCertificatesByUserRequest.SerializeToString,
+            course_dot_types_dot_certificate__pb2.CertificatesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GenerateCertificate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/course_service.EnrollmentService/GenerateCertificate',
+            course_dot_types_dot_certificate__pb2.GenerateCertificateRequest.SerializeToString,
+            course_dot_types_dot_certificate__pb2.CertificateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DownloadCertificate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/course_service.EnrollmentService/DownloadCertificate',
+            course_dot_types_dot_certificate__pb2.DownloadCertificateRequest.SerializeToString,
+            course_dot_types_dot_certificate__pb2.CertificatePDFChunk.FromString,
             options,
             channel_credentials,
             insecure,

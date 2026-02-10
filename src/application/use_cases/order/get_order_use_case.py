@@ -33,13 +33,11 @@ class GetOrderUseCase:
         self.logger.info(
             f"Executing GetOrderUseCase order id {dto.order_id}")
 
-        # Create order
         async with get_db() as session:
             order = await self.order_repository.find_by_id(dto.order_id, session)
         if not order:
             raise OrderNotFoundException(f"Order not found with Id {dto.order_id}")
 
-        # Invalidate cache for related user orders
         self.logger.debug(
             f"Successfully fetched  order for  order id {dto.order_id} ")
 

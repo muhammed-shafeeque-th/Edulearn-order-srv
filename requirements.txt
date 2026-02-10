@@ -12,16 +12,30 @@ pydantic-settings==2.4.0
 tenacity==8.5.0
 circuitbreaker==2.0.0
 prometheus-client==0.20.0
-opentelemetry-api==1.26.0
-opentelemetry-sdk==1.26.0
-opentelemetry-exporter-jaeger==1.21.0
+requests==2.32.3
 fastavro==1.9.5
 alembic==1.13.2
+dependency-injector>=4.42.0
 # Testing dependencies
 pytest==8.3.2
 pytest-asyncio==0.23.8
 asynctest==0.13.0
 pytest-mock==3.14.0
+
+
+opentelemetry-api==1.26.0
+opentelemetry-sdk==1.26.0
+opentelemetry-exporter-jaeger==1.21.0
+opentelemetry-instrumentation==0.47b0
+opentelemetry-instrumentation-fastapi==0.47b0
+# opentelemetry-instrumentation-asyncpg==0.47b0
+# opentelemetry-instrumentation-requests==0.47b0
+# opentelemetry-instrumentation-redis==0.47b0
+# opentelemetry-instrumentation-grpc==0.47b0
+# opentelemetry-semantic-conventions==0.47b0
+
+
+
 
 
 # aiokafka==0.11.0

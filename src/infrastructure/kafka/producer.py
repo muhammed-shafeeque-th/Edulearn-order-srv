@@ -19,7 +19,7 @@ class KafkaProducer(IKafkaProducer):
             bootstrap_servers=settings.KAFKA_BROKER,
             enable_idempotence=True,
             acks="all",
-            compression_type="gzip",  # Optimize network usage
+            compression_type="gzip", 
         )
         self.logger = logger_service.get_logger("KafkaProducer")
 
@@ -58,12 +58,29 @@ class KafkaProducer(IKafkaProducer):
             else:
                 # Serialize as JSON, encode to bytes
                 data = json.dumps(event).encode("utf-8")
+
+            # Try to get a meaningful key; fallback to None if not available
+            key = None
+            for k in ["orderId", "order_id", "userId", "user_id", "payment_id", "provider_order_id"]:
+                if k in event:
+                    key = str(event[k]).encode("utf-8")
+                    break
+
             await self.producer.send_and_wait(
                 topic,
-                key=event["orderId"].encode("utf-8"),
+                key=key,
                 value=data
             )
-            self.logger.debug(f"Published event {event.get('eventType', 'unknown')} to topic {topic}")
+            self.logger.info(f"Published event {event.get('eventType', 'unknown')} to topic {topic}")
         except Exception as e:
-            self.logger.error(f"Failed to publish event to topic {topic}: {str(e)}")
+            if topic.endswith(".dlq") and ("orderId" not in event and "order_id" not in event):
+                self.logger.error(
+                    f"Failed to publish event to topic {topic}: Missing 'orderId' or 'order_id' in event for DLQ. Exception: {str(e)}"
+                )
+            elif "is not available during auto-create initialization" in str(e):
+                self.logger.warning(
+                    f"Kafka topic {topic} does not yet exist. Kafka will auto-create the topic and this warning should disappear soon. Exception: {str(e)}"
+                )
+            else:
+                self.logger.error(f"Failed to publish event to topic {topic}: {str(e)}")
             raise

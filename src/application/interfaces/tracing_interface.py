@@ -3,7 +3,7 @@ from opentelemetry import trace
 from fastapi import FastAPI
 
 
-class TracingInterface(ABC):
+class ITracingService(ABC):
     @abstractmethod
     def setup_tracing(self) -> None:
         pass

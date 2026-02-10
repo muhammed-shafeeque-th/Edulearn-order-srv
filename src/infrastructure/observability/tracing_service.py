@@ -5,11 +5,11 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from src.application.interfaces.tracing_interface import TracingInterface
+from src.application.interfaces.tracing_interface import ITracingService
 from src.infrastructure.config.settings import settings
 
 
-class TracingService(TracingInterface):
+class TracingService(ITracingService):
     _instance = None
     _initialized = False
     

@@ -15,7 +15,7 @@ from circuitbreaker import circuit
 
 class UserServiceClient(IUserServiceClient):
     def __init__(self, logging_service: ILoggingService, token: str | None = None):
-        self.pool = ChannelPool(settings.USER_SERVICE_HOST, settings.USER_SERVICE_PORT,
+        self.pool = ChannelPool(settings.USER_SERVICE_NAME, settings.USER_SERVICE_GRPC,
                                 logging_service=logging_service, max_size=10)
         self.logger = logging_service.get_logger("UserServiceClient")
         self.interceptors = [
@@ -29,29 +29,28 @@ class UserServiceClient(IUserServiceClient):
     async def get_user(self, user_id: str) -> dict:
         channel = await self.pool.acquire()
         try:
-            # Apply aio interceptors to the channel (fallback to channel if unavailable)
-            # Apply interceptors if grpc.aio provides intercept_channel; otherwise use raw channel
             from typing import Any, cast
             intercept_fn = getattr(aio, "intercept_channel", None)
             if callable(intercept_fn):
-                intercepted = cast(Any, intercept_fn)(channel, *self.interceptors)
+                intercepted = cast(Any, intercept_fn)(
+                    channel, *self.interceptors)
             else:
                 intercepted = channel
             stub = UserServiceStub(intercepted)
             request = GetUserRequest(userId=user_id)
             response = await stub.GetUser(request)
-
-            # Detect error only if it's actually present (proto default messages evaluate truthy)
             has_error = False
             if hasattr(response, "HasField"):
                 try:
-                    has_error = response.HasField("error")  # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    has_error = response.HasField("error")
                 except Exception:
                     has_error = False
             else:
                 err = getattr(response, "error", None)
                 err_code = getattr(err, "code", "") if err is not None else ""
-                err_msg = getattr(err, "message", "") if err is not None else ""
+                err_msg = getattr(
+                    err, "message", "") if err is not None else ""
                 has_error = bool(err_code or err_msg)
 
             if has_error:
@@ -60,7 +59,6 @@ class UserServiceClient(IUserServiceClient):
                     f"Failed to fetch user with Id {user_id}: {getattr(err, 'message', '')}")
                 raise ValueError(getattr(err, "message", "Unknown error"))
 
-            # Map fields; generated response shows `id`, `role`
             return {"user_id": getattr(response, "id", None), "role": getattr(response, "role", None)}
         except Exception as e:
             self.logger.error(f"Failed to verify user {user_id}: {str(e)}")

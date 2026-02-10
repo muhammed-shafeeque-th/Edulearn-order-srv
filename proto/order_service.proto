@@ -2,6 +2,38 @@ syntax = "proto3";
 
 package order_service;
 
+
+
+service OrderService {
+  rpc PlaceOrder (PlaceOrderRequest) returns (OrderResponse);
+  rpc BookSession (BookSessionRequest) returns (BookSessionResponse);
+  rpc GetOrderById (GetOrderByIdRequest) returns (OrderResponse);
+  rpc RestoreOrder (RestoreOrderRequest) returns (OrderResponse);
+  rpc GetOrderStatus (GetOrderStatusRequest) returns (OrderStatusResponse);
+  rpc GetOrders (GetOrdersRequest) returns (OrdersResponse);
+
+  // Stats
+  rpc GetRevenueStats (GetRevenueStatsRequest) returns (GetRevenueStatsResponse); 
+}
+
+
+message GetRevenueStatsResponse {
+  oneof result {
+    RevenueStats success = 1;
+    Error error = 2;
+  }
+}
+
+message RevenueStats {
+    int32 revenue_this_month = 1;
+    int32 revenue_last_month = 2;
+}
+
+message GetRevenueStatsRequest {
+    string range = 1;
+}
+
+
 // Structured error message
 message Error {
   string code = 1;                    // e.g., "RESOURCE_NOT_FOUND", "INVALID_ARGUMENT", "UNAUTHENTICATED"
@@ -28,9 +60,10 @@ message PaymentDetailsData {
 }
 
 message MoneyData {
-  float price = 1;
+  float total = 1;
   string currency = 2;
   float discount = 3;
+  optional float sales_tax = 6;
   float sub_total = 4;
 }
 
@@ -72,12 +105,7 @@ message BookSessionSuccess {
   string updated_at = 8;
 }
 
-service OrderService {
-  rpc PlaceOrder (PlaceOrderRequest) returns (OrderResponse);
-  rpc BookSession (BookSessionRequest) returns (BookSessionResponse);
-  rpc GetOrderById (GetOrderByIdRequest) returns (OrderResponse);
-  rpc GetOrdersByUserId (GetOrderByUserIdRequest) returns (OrdersResponse);
-}
+
 
 message PlaceOrderRequest {
   string user_id = 1;
@@ -86,14 +114,25 @@ message PlaceOrderRequest {
 }
 message OrdersSuccess {
   repeated OrderData orders = 1;
+  int32 total = 2;
 }
 message OrderSuccess {
   OrderData order = 1;
+}
+message OrderStatus {
+  string status = 1;
+  string order_id = 2;
 }
 
 message OrderResponse {
   oneof result {
     OrderSuccess success = 1;
+    Error error = 2;
+  }
+}
+message OrderStatusResponse {
+  oneof result {
+    OrderStatus success = 1;
     Error error = 2;
   }
 }
@@ -112,9 +151,23 @@ message GetOrderByIdRequest {
   string order_id = 1;
   string user_id = 2;
 }
-
-message GetOrderByUserIdRequest {
+message RestoreOrderRequest {
+  string order_id = 1;
   string user_id = 2;
+}
+message GetOrderStatusRequest {
+  string order_id = 1;
+}
+message OrdersParams {
+  optional int32 page = 1;
+  optional string sort_order  = 3;
+  optional int32 page_size = 2;
+  optional string status  = 4;
+}
+
+message GetOrdersRequest {
+  string user_id = 2;
+  OrdersParams params = 1;
 }
 
 message BookSessionResponse {

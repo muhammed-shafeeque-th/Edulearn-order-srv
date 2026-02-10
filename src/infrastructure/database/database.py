@@ -9,7 +9,7 @@ engine = create_async_engine(
     pool_size=settings.MAX_CONNECTIONS,
     max_overflow=20,
     pool_timeout=30,
-    echo=True,
+    echo=False,
 )
 
 

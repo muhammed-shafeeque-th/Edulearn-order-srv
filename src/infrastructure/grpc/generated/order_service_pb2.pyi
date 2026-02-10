@@ -5,6 +5,28 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class GetRevenueStatsResponse(_message.Message):
+    __slots__ = ("success", "error")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    success: RevenueStats
+    error: Error
+    def __init__(self, success: _Optional[_Union[RevenueStats, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class RevenueStats(_message.Message):
+    __slots__ = ("revenue_this_month", "revenue_last_month")
+    REVENUE_THIS_MONTH_FIELD_NUMBER: _ClassVar[int]
+    REVENUE_LAST_MONTH_FIELD_NUMBER: _ClassVar[int]
+    revenue_this_month: int
+    revenue_last_month: int
+    def __init__(self, revenue_this_month: _Optional[int] = ..., revenue_last_month: _Optional[int] = ...) -> None: ...
+
+class GetRevenueStatsRequest(_message.Message):
+    __slots__ = ("range",)
+    RANGE_FIELD_NUMBER: _ClassVar[int]
+    range: str
+    def __init__(self, range: _Optional[str] = ...) -> None: ...
+
 class Error(_message.Message):
     __slots__ = ("code", "message", "details")
     CODE_FIELD_NUMBER: _ClassVar[int]
@@ -46,16 +68,18 @@ class PaymentDetailsData(_message.Message):
     def __init__(self, payment_id: _Optional[str] = ..., provider: _Optional[str] = ..., provider_order_id: _Optional[str] = ..., payment_status: _Optional[str] = ..., updated_at: _Optional[str] = ...) -> None: ...
 
 class MoneyData(_message.Message):
-    __slots__ = ("price", "currency", "discount", "sub_total")
-    PRICE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("total", "currency", "discount", "sales_tax", "sub_total")
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
     CURRENCY_FIELD_NUMBER: _ClassVar[int]
     DISCOUNT_FIELD_NUMBER: _ClassVar[int]
+    SALES_TAX_FIELD_NUMBER: _ClassVar[int]
     SUB_TOTAL_FIELD_NUMBER: _ClassVar[int]
-    price: float
+    total: float
     currency: str
     discount: float
+    sales_tax: float
     sub_total: float
-    def __init__(self, price: _Optional[float] = ..., currency: _Optional[str] = ..., discount: _Optional[float] = ..., sub_total: _Optional[float] = ...) -> None: ...
+    def __init__(self, total: _Optional[float] = ..., currency: _Optional[str] = ..., discount: _Optional[float] = ..., sales_tax: _Optional[float] = ..., sub_total: _Optional[float] = ...) -> None: ...
 
 class OrderData(_message.Message):
     __slots__ = ("id", "user_id", "items", "payment_details", "amount", "status", "created_at", "updated_at")
@@ -128,16 +152,26 @@ class PlaceOrderRequest(_message.Message):
     def __init__(self, user_id: _Optional[str] = ..., coupon_code: _Optional[str] = ..., course_ids: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class OrdersSuccess(_message.Message):
-    __slots__ = ("orders",)
+    __slots__ = ("orders", "total")
     ORDERS_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
     orders: _containers.RepeatedCompositeFieldContainer[OrderData]
-    def __init__(self, orders: _Optional[_Iterable[_Union[OrderData, _Mapping]]] = ...) -> None: ...
+    total: int
+    def __init__(self, orders: _Optional[_Iterable[_Union[OrderData, _Mapping]]] = ..., total: _Optional[int] = ...) -> None: ...
 
 class OrderSuccess(_message.Message):
     __slots__ = ("order",)
     ORDER_FIELD_NUMBER: _ClassVar[int]
     order: OrderData
     def __init__(self, order: _Optional[_Union[OrderData, _Mapping]] = ...) -> None: ...
+
+class OrderStatus(_message.Message):
+    __slots__ = ("status", "order_id")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    status: str
+    order_id: str
+    def __init__(self, status: _Optional[str] = ..., order_id: _Optional[str] = ...) -> None: ...
 
 class OrderResponse(_message.Message):
     __slots__ = ("success", "error")
@@ -146,6 +180,14 @@ class OrderResponse(_message.Message):
     success: OrderSuccess
     error: Error
     def __init__(self, success: _Optional[_Union[OrderSuccess, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class OrderStatusResponse(_message.Message):
+    __slots__ = ("success", "error")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    success: OrderStatus
+    error: Error
+    def __init__(self, success: _Optional[_Union[OrderStatus, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class OrdersResponse(_message.Message):
     __slots__ = ("success", "error")
@@ -171,11 +213,39 @@ class GetOrderByIdRequest(_message.Message):
     user_id: str
     def __init__(self, order_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
 
-class GetOrderByUserIdRequest(_message.Message):
-    __slots__ = ("user_id",)
+class RestoreOrderRequest(_message.Message):
+    __slots__ = ("order_id", "user_id")
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
+    order_id: str
     user_id: str
-    def __init__(self, user_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, order_id: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+
+class GetOrderStatusRequest(_message.Message):
+    __slots__ = ("order_id",)
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    order_id: str
+    def __init__(self, order_id: _Optional[str] = ...) -> None: ...
+
+class OrdersParams(_message.Message):
+    __slots__ = ("page", "sort_order", "page_size", "status")
+    PAGE_FIELD_NUMBER: _ClassVar[int]
+    SORT_ORDER_FIELD_NUMBER: _ClassVar[int]
+    PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    page: int
+    sort_order: str
+    page_size: int
+    status: str
+    def __init__(self, page: _Optional[int] = ..., sort_order: _Optional[str] = ..., page_size: _Optional[int] = ..., status: _Optional[str] = ...) -> None: ...
+
+class GetOrdersRequest(_message.Message):
+    __slots__ = ("user_id", "params")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    PARAMS_FIELD_NUMBER: _ClassVar[int]
+    user_id: str
+    params: OrdersParams
+    def __init__(self, user_id: _Optional[str] = ..., params: _Optional[_Union[OrdersParams, _Mapping]] = ...) -> None: ...
 
 class BookSessionResponse(_message.Message):
     __slots__ = ("success", "error")

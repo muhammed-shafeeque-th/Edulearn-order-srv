@@ -20,7 +20,7 @@ from structlog.processors import (
 )
 from structlog.types import Processor, EventDict
 
-from src.application.interfaces.logging_interface import LoggingInterface
+from src.application.interfaces.logging_interface import ILoggingService
 from src.infrastructure.config.settings import settings
 
 
@@ -303,7 +303,7 @@ class ConsoleFormatter(logging.Formatter):
         return formatted
 
 
-class LoggingService(LoggingInterface):
+class LoggingService(ILoggingService):
     """Enhanced logging service using structlog with best practices."""
 
     _instance: Optional['LoggingService'] = None

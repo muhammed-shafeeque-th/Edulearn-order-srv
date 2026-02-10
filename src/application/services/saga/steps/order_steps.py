@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Any
 import fastavro
 
-from src.domain.repositories.order_repository import OrderRepositoryInterface
-from src.application.interfaces.kafka_producer_interface import KafkaProducerInterface
+from src.domain.repositories.order_repository import IOrderRepository
+from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.services.interfaces.saga_step import SagaStep
 from src.domain.entities.order import Order
 
@@ -27,7 +27,7 @@ with open(payment_schema_path, "r") as f:
 
 class CreateOrderStep(SagaStep):
     def __init__(
-        self, order: Order, order_repository: OrderRepositoryInterface
+        self, order: Order, order_repository: IOrderRepository
     ) -> None:
         self.order = order
         self.order_repository = order_repository
@@ -45,7 +45,7 @@ class CreateOrderStep(SagaStep):
 
 
 class RequestPaymentStep(SagaStep):
-    def __init__(self, kafka_producer: KafkaProducerInterface) -> None:
+    def __init__(self, kafka_producer: IKafkaProducer) -> None:
         self.kafka_producer = kafka_producer
 
     async def execute(self, context: dict[str, Any]) -> None:

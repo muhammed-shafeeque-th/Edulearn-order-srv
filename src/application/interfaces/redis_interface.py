@@ -20,6 +20,10 @@ class IRedisService(ABC):
     @abstractmethod
     async def delete(self, key: str) -> None:
         pass
+    
+    @abstractmethod
+    async def delete_pattern(self, key: str) -> None:
+        pass
 
     @abstractmethod
     def lock(self, key: str, timeout: int = 10) -> AsyncContextManager:

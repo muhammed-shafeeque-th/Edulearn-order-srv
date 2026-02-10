@@ -8,14 +8,14 @@ import io
 
 
 from src.application.interfaces.grpc_client_interface import (
-    SessionServiceClientInterface,
+    ISessionServiceClient,
 )
-from src.application.interfaces.redis_interface import RedisInterface
+from src.application.interfaces.redis_interface import IRedisService
 from src.domain.exceptions.exceptions import SessionNotFoundException
 from src.domain.repositories.session_booking_repository import (
-    SessionBookingRepositoryInterface,
+    ISessionBookingRepository,
 )
-from src.application.interfaces.kafka_producer_interface import KafkaProducerInterface
+from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.services.interfaces.saga_step import SagaStep
 from src.domain.entities.session_booking import SessionBooking
 from src.infrastructure.redis.redis_client import RedisClient
@@ -32,7 +32,7 @@ with open(payment_schema_path, "r") as f:
     class CheckSessionAvailabilityStep(SagaStep):
         def __init__(
             self,
-            session_service_client: SessionServiceClientInterface,
+            session_service_client: ISessionServiceClient,
             session_id: str,
             max_slots: int,
         ) -> None:
@@ -56,8 +56,8 @@ with open(payment_schema_path, "r") as f:
         def __init__(
             self,
             booking: SessionBooking,
-            session_booking_repository: SessionBookingRepositoryInterface,
-            redis_client: RedisInterface,
+            session_booking_repository: ISessionBookingRepository,
+            redis_client: IRedisService,
         ) -> None:
             self.booking = booking
             self.session_booking_repository = session_booking_repository
@@ -88,7 +88,7 @@ with open(payment_schema_path, "r") as f:
                 await self.session_booking_repository.save(booking)
 
     class RequestSessionPaymentStep(SagaStep):
-        def __init__(self, kafka_producer: KafkaProducerInterface) -> None:
+        def __init__(self, kafka_producer: IKafkaProducer) -> None:
             self.kafka_producer = kafka_producer
 
         async def execute(self, context: dict[str, Any]) -> None:

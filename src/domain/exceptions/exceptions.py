@@ -10,6 +10,9 @@ class UserNotFoundException(DomainException):
 class CourseNotFoundException(DomainException):
     pass
 
+class CourseAlreadyEnrolledException(DomainException):
+    pass
+
 class SessionNotFoundException(DomainException):
     pass
 

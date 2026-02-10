@@ -1,549 +1,318 @@
 import json
+from datetime import datetime
+from typing import Any, Optional, List
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, update, func
+from sqlalchemy.orm import InstrumentedAttribute, selectinload
+
+from src.domain.entities.order_items import OrderItem
+from src.domain.entities.payment_details import PaymentDetails
+from src.domain.entities.order import Order, OrderStatus
+from src.domain.value_objects.money import Money
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.redis_interface import IRedisService
-from src.domain.repositories.order_repository import IOrderRepository
+from src.domain.repositories.order_repository import IOrderRepository, RevenueRange, RevenueStats
 from src.infrastructure.database.models.order_model import (
     OrderModel,
     OrderItemModel,
     PaymentDetailsModel,
 )
-# from src.infrastructure.database.mapper import DomainModelMapper
-from src.domain.entities.order_items import OrderItem
-from src.domain.entities.payment_details import PaymentDetails
-from src.domain.entities.order import Order, OrderStatus
-from src.domain.value_objects.money import Money
 from src.infrastructure.database.database import AsyncSession
-from sqlalchemy import select, update
-from sqlalchemy.orm import selectinload
-from typing import Optional, List
-import logging
-from uuid import uuid4
-from datetime import datetime
+from src.infrastructure.database.mappers.entity_mapper import EntityMapper
 
 
 class SqlOrderRepository(IOrderRepository):
     def __init__(self, redis: IRedisService, logging_service: ILoggingService):
-        # session = session
         self.redis = redis
         self.logger = logging_service.get_logger("SqlOrderRepository")
 
-    # async def save(self, order: Order,  session: AsyncSession) -> None:
-    #     try:
-    #         order_model = OrderModel.from_domain(order)
-    #         session.add(order_model)
-    #         # Persist items
-    #         for item in order.items:
-    #             session.add(OrderItemModel.from_domain(item, order.id))
-    #         # Persist payment details if available
-    #         if order.payment_details:
-    #             session.add(PaymentDetailsModel.from_domain(order.payment_details, order.id))
-    #         await session.commit()
-
-    #         order_model_entity = order_model.map_to_domain()
-    #         # Update the entity with the saved data
-    #         order.id = order_model_entity.id
-    #         order.created_at = order_model_entity.created_at
-    #         order.updated_at = order_model_entity.updated_at
-
-    #         # Update cache
-    #         cache_key = f"orders:{order.id}"
-    #         await self.redis.set(cache_key, json.dumps({
-    #             "id": order.id,
-    #             "user_id": order.user_id,
-    #             "items": [
-    #                 {"course_id": i.course_id, "price": i.price}
-    #                 for i in order.items
-    #             ],
-    #             "amount": order.amount.amount,
-    #             "currency": order.amount.currency,
-    #             "discount": order.discount,
-    #             "status": order.status.value,
-    #             "payment_details": (
-    #                 {
-    #                     "payment_id": order.payment_details.payment_id,
-    #                     "provider": order.payment_details.provider,
-    #                     "provider_order_id": order.payment_details.provider_order_id,
-    #                     "payment_status": order.payment_details.payment_status,
-    #                     "updated_at": order.payment_details.updated_at.isoformat(),
-    #                 }
-    #                 if order.payment_details
-    #                 else None
-    #             ),
-    #             "created_at": order.created_at.isoformat(),
-    #             "updated_at": order.updated_at.isoformat(),
-    #         }), expire=3600)
-
-    #         # Invalidate user orders cache
-    #         await self.redis.delete(f"user_orders:{order.user_id}")
-
-    #     except Exception as e:
-    #         self.logger.error(f"Failed to save order {order.id}: {str(e)}")
-    #         await session.rollback()
-    #         raise
-    # async def save(self, order: Order, session: AsyncSession) -> None:
-    #     try:
-    #         # Build the OrderModel and attach children to it so relationships are populated in-memory.
-    #         order_model = OrderModel.from_domain(order)
-
-    #         # Attach item models to the order_model.items list (in-memory)
-    #         item_models = []
-    #         for item in order.items:
-    #             item_model = OrderItemModel.from_domain(item, order.id)
-    #             item_models.append(item_model)
-    #         # Make sure we attach them to the relationship
-    #         order_model.items = item_models
-
-    #         # Attach payment details model (if present) directly to the relationship
-    #         if order.payment_details:
-    #             payment_model = PaymentDetailsModel.from_domain(order.payment_details, order.id)
-    #             order_model.payment_details = payment_model
-
-    #         # Add the root order_model only (children are in-memory attached)
-    #         session.add(order_model)
-
-    #         # Flush so DB-side defaults (timestamps etc.) are generated and PKs known.
-    #         await session.flush()
-
-    #         # Optional: refresh to load updated DB-side defaults (if you want)
-    #         # await session.refresh(order_model)
-
-    #         # Commit the transaction
-    #         await session.commit()
-
-    #         # Now map to domain using in-memory relationship objects (no lazy loads)
-    #         order_model_entity = order_model.map_to_domain()
-    #         order.id = order_model_entity.id
-    #         order.created_at = order_model_entity.created_at
-    #         order.updated_at = order_model_entity.updated_at
-
-    #         # Cache (note: use .value or .name if using enums)
-    #         cache_key = f"orders:{order.id}"
-    #         await self.redis.set(
-    #             cache_key,
-    #             json.dumps(
-    #                 {
-    #                     "id": order.id,
-    #                     "user_id": order.user_id,
-    #                     "items": [{"course_id": i.course_id, "price": i.price} for i in order.items],
-    #                     "amount": order.amount.amount,
-    #                     "currency": order.amount.currency,
-    #                     "discount": order.discount,
-    #                     "status": order.status.value if hasattr(order.status, "value") else order.status,
-    #                     "payment_details": (
-    #                         {
-    #                             "payment_id": order.payment_details.payment_id,
-    #                             "provider": order.payment_details.provider,
-    #                             "provider_order_id": order.payment_details.provider_order_id,
-    #                             "payment_status": order.payment_details.payment_status,
-    #                             "updated_at": order.payment_details.updated_at.isoformat()
-    #                             if getattr(order.payment_details, "updated_at", None) else None,
-    #                         }
-    #                         if order.payment_details
-    #                         else None
-    #                     ),
-    #                     "created_at": order.created_at.isoformat(),
-    #                     "updated_at": order.updated_at.isoformat(),
-    #                 }
-    #             ),
-    #             expire=3600,
-    #         )
-
-    #         # Invalidate user orders cache
-    #         await self.redis.delete(f"user_orders:{order.user_id}")
-
-    #     except Exception as e:
-    #         # Rollback and re-raise
-    #         self.logger.error(f"Failed to save order {order.id}: {str(e)}")
-    #         try:
-    #             await session.rollback()
-    #         except Exception:
-    #             pass
-    #         raise
-    # async def save(self, order: Order, session: AsyncSession) -> None:
-    #     try:
-    #         # Build the OrderModel and attach children to it so relationships are populated in-memory.
-    #         order_model = OrderModel.from_domain(order)
-
-    #         # Build and attach item models to the order_model.items list
-    #         item_models = [OrderItemModel.from_domain(item, order.id) for item in order.items]
-    #         order_model.items = item_models  # in-memory collection attached
-
-    #         # Attach payment details model (if present) as a scalar attribute
-    #         if order.payment_details:
-    #             payment_model = PaymentDetailsModel.from_domain(order.payment_details, order.id)
-    #             order_model.payment_details = payment_model  # works because uselist=False
-
-    #         # Add and flush to persist; flushing will generate DB defaults but not commit yet.
-    #         session.add(order_model)
-    #         await session.flush()
-
-    #         # Optionally refresh to read DB-generated defaults into the instance.
-    #         # (Allowed here because we're still inside the async session)
-    #         await session.refresh(order_model)
-
-    #         # Commit transaction
-    #         # await session.commit()
-
-    #         # Now map to domain using in-memory relationship objects (no lazy loads)
-    #         order_model_entity = order_model.map_to_domain()
-    #         order.id = order_model_entity.id
-    #         order.created_at = order_model_entity.created_at
-    #         order.updated_at = order_model_entity.updated_at
-
-    #         # Cache payload (as before)
-    #         cache_key = f"orders:{order.id}"
-    #         await self.redis.set(
-    #             cache_key,
-    #             json.dumps({
-    #                 "id": order.id,
-    #                 "user_id": order.user_id,
-    #                 "items": [{"course_id": i.course_id, "price": i.price} for i in order.items],
-    #                 "amount": order.amount.amount,
-    #                 "currency": order.amount.currency,
-    #                 "discount": order.discount,
-    #                 "status": order.status.value if hasattr(order.status, "value") else order.status,
-    #                 "payment_details": (
-    #                     {
-    #                         "payment_id": order.payment_details.payment_id,
-    #                         "provider": order.payment_details.provider,
-    #                         "provider_order_id": order.payment_details.provider_order_id,
-    #                         "payment_status": order.payment_details.payment_status,
-    #                         "updated_at": order.payment_details.updated_at.isoformat()
-    #                             if getattr(order.payment_details, "updated_at", None) else None,
-    #                     } if order.payment_details else None
-    #                 ),
-    #                 "created_at": order.created_at.isoformat(),
-    #                 "updated_at": order.updated_at.isoformat(),
-    #             }),
-    #             expire=3600,
-    #         )
-
-    #         await self.redis.delete(f"user_orders:{order.user_id}")
-
-    #     except Exception as e:
-    #         self.logger.error(f"Failed to save order {order.id}: {str(e)}")
-    #         try:
-    #             await session.rollback()
-    #         except Exception:
-    #             pass
-    #         raise
     async def save(self, order: Order, session: AsyncSession) -> Order:
-        # Map domain → persistence model
-        order_model = OrderModel(
-            id=order.id,
-            user_id=order.user_id,
-            idempotency_key=order.idempotency_key,
-            amount=order.amount.amount,
-            currency=order.amount.currency,
-            discount=order.discount,
-            sub_total=order.sub_total,
-            status=order.status.value if hasattr(
-                order.status, "value") else order.status,
-            created_at=order.created_at,
-            updated_at=order.updated_at,
-        )
-
-        # Attach items
-        item_models = [
-            OrderItemModel(
-                id=str(uuid4()),
-                course_id=item.course_id,
-                price=item.price
+        """
+        Upserts OrderModel and relationships, properly managing cache invalidation and persistence.
+        """
+        try:
+            existing = await session.get(
+                OrderModel, order.id,
+                options=[
+                    selectinload(OrderModel.items),
+                    selectinload(OrderModel.payment_details)
+                ]
             )
-            for item in order.items
-        ]
-        order_model.items = item_models
+            if not existing:
+                # Create new model
+                order_model = OrderModel(
+                    id=order.id,
+                    user_id=order.user_id,
+                    idempotency_key=order.idempotency_key,
+                    amount=order.amount.amount,
+                    currency=order.amount.currency,
+                    discount=order.discount,
+                    sub_total=order.sub_total,
+                    sales_tax=order.sales_tax,
+                    status=order.status.value if hasattr(
+                        order.status, "value") else order.status,
+                    created_at=order.created_at,
+                    updated_at=order.updated_at,
+                )
+                order_model.items = [
+                    OrderItemModel(
+                        id=item.id, course_id=item.course_id, price=item.price)
+                    for item in order.items
+                ]
+                if order.payment_details:
+                    order_model.payment_details = EntityMapper.to_orm_payment_details(
+                        order.payment_details, order.id)
+                session.add(order_model)
+                await session.flush()
+                await session.refresh(order_model)
+                persisted = order_model
+            else:
+                # Update fields
+                for field in ["user_id", "idempotency_key", "amount", "currency","discount", "sub_total", "sales_tax"]:
+                    if field == "amount":
+                        # This is the float value of order.amount.amount
+                        value = getattr(order.amount, "amount", None)
+                    elif field == "currency":
+                        value = getattr(order.amount, "currency", None)
+                    else:
+                        value = getattr(order, field, None)
+                    setattr(existing, field, value)
 
-        # Attach payment details
-        if order.payment_details:
-            order_model.payment_details = PaymentDetailsModel(
-                payment_id=order.payment_details.payment_id,
-                provider=order.payment_details.provider,
-                provider_order_id=order.payment_details.provider_order_id,
-                payment_status=order.payment_details.payment_status,
-                updated_at=order.payment_details.updated_at,
-            )
+                setattr(existing, "status", order.status.value if hasattr(
+                    order.status, "value") else order.status)
+                setattr(existing, "updated_at",
+                        order.updated_at or datetime.utcnow())
 
-        session.add(order_model)
+                # Replace items
+                existing.items[:] = [
+                    OrderItemModel(
+                        id=item.id, course_id=item.course_id, price=item.price)
+                    for item in order.items
+                ]
 
-        # Flush so PKs are available, refresh ensures values are in memory
-        await session.flush()
-        await session.refresh(order_model)
+                # Upsert payment details
+                if order.payment_details:
+                    if existing.payment_details:
+                        pd = existing.payment_details
+                        pd.payment_id = order.payment_details.payment_id
+                        pd.provider = order.payment_details.provider
+                        pd.provider_order_id = order.payment_details.provider_order_id
+                        pd.payment_status = order.payment_details.payment_status
+                        pd.updated_at = order.payment_details.updated_at or datetime.utcnow()
+                    else:
+                        existing.payment_details = EntityMapper.to_orm_payment_details(
+                            order.payment_details, order.id)
 
-        #  no lazy loading: relationships are already attached
-        return self._map_to_domain(order_model)
+                await session.flush()
+                await session.refresh(existing)
+                persisted = existing
+
+            # Cache housekeeping
+            domain_order = EntityMapper.to_domain_order(persisted)
+            await self._invalidate_order_caches(domain_order)
+            cache_json = EntityMapper.serialize_order_to_json(domain_order)
+            cache_key = f"orders:{domain_order.id}"
+            await self.redis.set(cache_key, cache_json, expire=3600)
+            if domain_order.idempotency_key:
+                idem_cache_key = f"orders:idempotency_key:{domain_order.idempotency_key}"
+                await self.redis.set(idem_cache_key, cache_json, expire=3600)
+
+            return domain_order
+        except IntegrityError as ie:
+            self.logger.error(
+                "IntegrityError while saving order: %s", getattr(ie, "orig", ie))
+            await session.rollback()
+            raise
+        except Exception as e:
+            self.logger.exception(
+                f"Failed to save/update order and keep cache in sync: {str(e)}")
+            try:
+                await session.rollback()
+            except Exception:
+                pass
+            raise
+
+    async def _invalidate_order_caches(self, order: Order):
+        """
+        Invalidate all cache entries related to an order and the user's paged list caches.
+        """
+        await self.redis.delete(f"orders:{order.id}")
+        if order.idempotency_key:
+            await self.redis.delete(f"orders:idempotency_key:{order.idempotency_key}")
+        # Invalidate paged user order caches (pattern-based if supported)
+        user_cache_pattern = f"user_orders:{order.user_id}:p*:s*:o*"
+        try:
+            await self.redis.delete_pattern(user_cache_pattern)
+        except AttributeError:
+            self.logger.warning(
+                "RedisService does not implement delete_pattern; paged user orders cache may be stale.")
 
     async def find_by_id(self, order_id: str, session: AsyncSession) -> Optional[Order]:
+        cache_key = f"orders:{order_id}"
         try:
-            # Check cache first
-            cache_key = f"orders:{order_id}"
-            cached_order = await self.redis.get(cache_key)
-
-            if cached_order:
-                order_data = json.loads(cached_order)
-                items = [
-                    {
-                        "course_id": i["course_id"],
-                        "price": i["price"],
-                    }
-                    for i in order_data.get("items", [])
-                ]
-                payment_details = order_data.get("payment_details")
-                from src.domain.entities.order_items import OrderItem
-                from src.domain.entities.payment_details import PaymentDetails
-                return Order(
-                    id=order_data["id"],
-                    user_id=order_data["user_id"],
-                    idempotency_key=order_data["idempotency_key"],
-                    items=[OrderItem.create(**i) for i in items],
-                    amount=Money(
-                        amount=order_data["amount"], currency=order_data["currency"]),
-                    sub_total=order_data.get("sub_total"),
-                    discount=order_data.get("discount"),
-                    status=order_data["status"],
-                    payment_details=(
-                        PaymentDetails.create(
-                            payment_id=payment_details["payment_id"],
-                            provider=payment_details["provider"],
-                            provider_order_id=payment_details["provider_order_id"],
-                            payment_status=payment_details.get(
-                                "payment_status", "pending"),
-                        ) if payment_details else None
-                    ),
-                    created_at=datetime.fromisoformat(
-                        order_data["created_at"]),
-                    updated_at=datetime.fromisoformat(
-                        order_data["updated_at"]),
-                )
-
-            # Fetch from database
+            cached = await self.redis.get(cache_key)
+            if cached is not None:
+                try:
+                    return EntityMapper.deserialize_json_to_order(json.loads(cached))
+                except Exception as e:
+                    self.logger.warning(
+                        f"Invalid/corrupt cache for {cache_key}: {e}")
+                    await self.redis.delete(cache_key)
             result = await session.execute(
                 select(OrderModel)
-                .options(
-                    selectinload(OrderModel.items),
-                    selectinload(OrderModel.payment_details),
-                )
+                .options(selectinload(OrderModel.items), selectinload(OrderModel.payment_details))
                 .where(OrderModel.id == order_id)
             )
             order_model = result.scalars().first()
             if not order_model:
                 return None
-            order = order_model.map_to_domain()
-
-            # Cache the result
-            await self.redis.set(cache_key, json.dumps({
-                "id": order.id,
-                "user_id": order.user_id,
-                "idempotency_key": order.idempotency_key,
-                "items": [
-                    {"course_id": i.course_id, "price": i.price}
-                    for i in order.items
-                ],
-                "amount": order.amount.amount,
-                "currency": order.amount.currency,
-                "discount": order.discount,
-                "sub_total": order.sub_total,
-                "status": order.status.value,
-                "payment_details": (
-                    {
-                        "payment_id": order.payment_details.payment_id,
-                        "provider": order.payment_details.provider,
-                        "provider_order_id": order.payment_details.provider_order_id,
-                        "payment_status": order.payment_details.payment_status,
-                        "updated_at": order.payment_details.updated_at.isoformat(),
-                    }
-                    if order.payment_details
-                    else None
-                ),
-                "created_at": order.created_at.isoformat(),
-                "updated_at": order.updated_at.isoformat(),
-            }), expire=3600)
-
+            order = EntityMapper.to_domain_order(order_model)
+            await self.redis.set(cache_key, EntityMapper.serialize_order_to_json(order), expire=3600)
             return order
-
         except Exception as e:
             self.logger.error(f"Failed to find order {order_id}: {str(e)}")
             raise
-        
+
     async def find_by_idempotency_key(self, idempotency_key: str, session: AsyncSession) -> Optional[Order]:
+        cache_key = f"orders:idempotency_key:{idempotency_key}"
         try:
-            # Check cache first
-            cache_key = f"orders:idempotency_key:{idempotency_key}"
-            cached_order = await self.redis.get(cache_key)
+            cached = await self.redis.get(cache_key)
+            if cached:
+                try:
+                    return EntityMapper.deserialize_json_to_order(json.loads(cached))
+                except Exception as e:
+                    self.logger.warning(
+                        f"Invalid/corrupt idempotency order cache for {cache_key}: {e}")
+                    await self.redis.delete(cache_key)
 
-            if cached_order:
-                order_data = json.loads(cached_order)
-                items = [
-                    {
-                        "course_id": i["course_id"],
-                        "price": i["price"],
-                    }
-                    for i in order_data.get("items", [])
-                ]
-                payment_details = order_data.get("payment_details")
-                from src.domain.entities.order_items import OrderItem
-                from src.domain.entities.payment_details import PaymentDetails
-                return Order(
-                    id=order_data["id"],
-                    user_id=order_data["user_id"],
-                    idempotency_key=order_data["idempotency_key"],
-                    items=[OrderItem.create(**i) for i in items],
-                    amount=Money(
-                        amount=order_data["amount"], currency=order_data["currency"]),
-                    sub_total=order_data.get("sub_total"),
-                    discount=order_data.get("discount"),
-                    status=order_data["status"],
-                    payment_details=(
-                        PaymentDetails.create(
-                            payment_id=payment_details["payment_id"],
-                            provider=payment_details["provider"],
-                            provider_order_id=payment_details["provider_order_id"],
-                            payment_status=payment_details.get(
-                                "payment_status", "pending"),
-                        ) if payment_details else None
-                    ),
-                    created_at=datetime.fromisoformat(
-                        order_data["created_at"]),
-                    updated_at=datetime.fromisoformat(
-                        order_data["updated_at"]),
-                )
-
-            # Fetch from database
+            # DB fallback
             result = await session.execute(
                 select(OrderModel)
-                .options(
-                    selectinload(OrderModel.items),
-                    selectinload(OrderModel.payment_details),
-                )
+                .options(selectinload(OrderModel.items), selectinload(OrderModel.payment_details))
                 .where(OrderModel.idempotency_key == idempotency_key)
             )
             order_model = result.scalars().first()
             if not order_model:
                 return None
-            order = order_model.map_to_domain()
-
-            # Cache the result
-            await self.redis.set(cache_key, json.dumps({
-                "id": order.id,
-                "user_id": order.user_id,
-                "idempotency_key": order.idempotency_key,
-                "items": [
-                    {"course_id": i.course_id, "price": i.price}
-                    for i in order.items
-                ],
-                "amount": order.amount.amount,
-                "currency": order.amount.currency,
-                "discount": order.discount,
-                "sub_total": order.sub_total,
-                "status": order.status.value,
-                "payment_details": (
-                    {
-                        "payment_id": order.payment_details.payment_id,
-                        "provider": order.payment_details.provider,
-                        "provider_order_id": order.payment_details.provider_order_id,
-                        "payment_status": order.payment_details.payment_status,
-                        "updated_at": order.payment_details.updated_at.isoformat(),
-                    }
-                    if order.payment_details
-                    else None
-                ),
-                "created_at": order.created_at.isoformat(),
-                "updated_at": order.updated_at.isoformat(),
-            }), expire=3600)
-
+            order = EntityMapper.to_domain_order(order_model)
+            # Cache for both idempotency key and order id
+            order_json = EntityMapper.serialize_order_to_json(order)
+            await self.redis.set(cache_key, order_json, expire=3600)
+            await self.redis.set(f"orders:{order.id}", order_json, expire=3600)
             return order
-
-        except Exception as e:
-            self.logger.error(f"Failed to find order with idempotency_key {idempotency_key}: {str(e)}")
-            raise
-
-    async def find_by_user_id(self, user_id: str, session: AsyncSession) -> List[Order]:
-        try:
-            # Check cache first
-            cache_key = f"user_orders:{user_id}"
-            cached_orders = await self.redis.get(cache_key)
-            if cached_orders:
-                orders_data = json.loads(cached_orders)
-                from src.domain.entities.order_items import OrderItem
-                from src.domain.entities.payment_details import PaymentDetails
-                return [
-                    Order(
-                        id=order_data["id"],
-                        user_id=order_data["user_id"],
-                        idempotency_key=order_data["idempotency_key"],
-                        items=[OrderItem.create(**i)
-                               for i in order_data.get("items", [])],
-                        amount=Money(
-                            amount=order_data["amount"], currency=order_data["currency"]),
-                        sub_total=order_data.get("sub_total"),
-                        discount=order_data.get("discount"),
-                        status=order_data["status"],
-                        payment_details=(
-                            PaymentDetails.create(
-                                payment_id=order_data["payment_details"]["payment_id"],
-                                provider=order_data["payment_details"]["provider"],
-                                provider_order_id=order_data["payment_details"]["provider_order_id"],
-                                payment_status=order_data["payment_details"].get(
-                                    "payment_status", "pending"),
-                            ) if order_data.get("payment_details") else None
-                        ),
-                        created_at=datetime.fromisoformat(
-                            order_data["created_at"]),
-                        updated_at=datetime.fromisoformat(
-                            order_data["updated_at"]),
-                    )
-                    for order_data in orders_data
-                ]
-
-            # Fetch from database
-            result = await session.execute(
-                select(OrderModel)
-                .options(
-                    selectinload(OrderModel.items),
-                    selectinload(OrderModel.payment_details),
-                )
-                .where(OrderModel.user_id == user_id)
-            )
-            orders = result.scalars().all()
-            domain_results = [order_model.map_to_domain()
-                              for order_model in orders]
-
-            # Cache the result
-            await self.redis.set(cache_key, json.dumps([
-                {
-                    "id": order.id,
-                    "user_id": order.user_id,
-                    "idempotency_key": order.idempotency_key,
-                    "items": [
-                        {"course_id": i.course_id, "price": i.price}
-                        for i in order.items
-                    ],
-                    "amount": order.amount.amount,
-                    "currency": order.amount.currency,
-                    "discount": order.discount,
-                    "status": order.status.value,
-                    "sub_total": order.sub_total,
-                    "payment_details": (
-                        {
-                            "payment_id": order.payment_details.payment_id,
-                            "provider": order.payment_details.provider,
-                            "provider_order_id": order.payment_details.provider_order_id,
-                            "payment_status": order.payment_details.payment_status,
-                            "updated_at": order.payment_details.updated_at.isoformat(),
-                        }
-                        if order.payment_details
-                        else None
-                    ),
-                    "created_at": order.created_at.isoformat(),
-                    "updated_at": order.updated_at.isoformat(),
-                }
-                for order in domain_results
-            ]), expire=3600)
-
-            return domain_results
         except Exception as e:
             self.logger.error(
-                f"Failed to find orders for user {user_id}: {str(e)}")
+                f"Failed to find order with idempotency_key {idempotency_key}: {str(e)}")
+            raise
+
+    async def find_by_user_id(
+        self,
+        user_id: str,
+        session: AsyncSession,
+        status: Optional[str] = None,
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 20,
+        sort_order: Optional[str] = "desc",
+    ) -> tuple[List[Order], int]:
+
+        def map_status_to_db(status: Optional[str]) -> Optional[List[str]]:
+            status_map = {
+                "pending": ["created", "pending_payment", "processing"],
+                "failed": ["failed"],
+                "succeeded": ["succeeded"],
+                "completed": ["succeeded"],
+                "cancelled": ["cancelled", "expired"],
+                "refunded": ["refunded"],
+                "expired": ["expired", "expired"],
+            }
+            if status is None:
+                return None
+            return status_map.get(status.strip().lower())
+
+        # Validate pagination params
+        page = page if isinstance(page, int) and page > 0 else 1
+        page_size = page_size if isinstance(
+            page_size, int) and page_size > 0 else 20
+        sort_order = (sort_order or "desc").lower()
+        if sort_order not in ("asc", "desc"):
+            sort_order = "desc"
+
+        offset = (page - 1) * page_size
+        status_segment = status.strip().lower() if status is not None else "all"
+        cache_key = f"user_orders:{user_id}:p{page}:s{page_size}:o{sort_order}:status:{status_segment}"
+
+        try:
+            # Try cache first
+            cached = await self.redis.get(cache_key)
+            if cached:
+                try:
+                    cache_data = json.loads(cached)
+                    if not isinstance(cache_data, dict):
+                        raise ValueError(f"Cache not dict: {cache_data}")
+                    orders_data = cache_data.get("orders", [])
+                    if not isinstance(orders_data, list):
+                        raise ValueError(
+                            f"'orders' not a list: {orders_data!r}")
+                    orders = [EntityMapper.deserialize_json_to_order(json.loads(
+                        o) if isinstance(o, str) else o) for o in orders_data]
+                    total = cache_data.get("total", 0)
+                    try:
+                        total = int(total)
+                    except Exception:
+                        total = 0
+                    return orders, total
+                except Exception as e:
+                    self.logger.warning(
+                        f"Invalid/corrupt paged user orders cache for {cache_key}: {e}")
+                    try:
+                        await self.redis.delete(cache_key)
+                    except Exception as del_e:
+                        self.logger.warning(
+                            f"Failed to delete corrupt cache key {cache_key}: {del_e}")
+
+            ordering_col = OrderModel.created_at.asc(
+            ) if sort_order == "asc" else OrderModel.created_at.desc()
+            mapped_statuses = map_status_to_db(status)
+            where_clauses = [OrderModel.user_id == user_id]
+            if mapped_statuses:
+                where_clauses.append(OrderModel.status.in_(mapped_statuses))
+
+            stmt = (
+                select(OrderModel)
+                .options(selectinload(OrderModel.items), selectinload(OrderModel.payment_details))
+                .where(*where_clauses)
+                .order_by(ordering_col)
+                .offset(offset)
+                .limit(page_size)
+            )
+            result = await session.execute(stmt)
+            order_models = result.scalars().all()
+            domain_results = [EntityMapper.to_domain_order(order_model)
+                              for order_model in order_models]
+
+            # Total count (respecting status filter)
+            count_stmt = select(func.count()).select_from(
+                OrderModel).where(*where_clauses)
+            total_result = await session.execute(count_stmt)
+            total_count = total_result.scalar_one() or 0
+
+            # Cache the results
+            to_cache = {
+                "orders": [EntityMapper.serialize_order_to_json(order) for order in domain_results],
+                "total": total_count
+            }
+            try:
+                await self.redis.set(cache_key, json.dumps(to_cache), expire=1200)
+            except Exception as e:
+                self.logger.warning(
+                    f"Failed to cache user orders for {user_id}: {e}")
+
+            return domain_results, total_count
+        except Exception as e:
+            self.logger.error(
+                f"Failed to find orders for user {user_id} [page={page}, size={page_size}, order={sort_order}, status={status}]: {str(e)}"
+            )
             raise
 
     async def update_status(self, order_id: str, status: str, session: AsyncSession) -> None:
@@ -554,73 +323,145 @@ class SqlOrderRepository(IOrderRepository):
                 .values(status=status)
             )
             await session.commit()
+            order_model = await session.get(OrderModel, order_id)
+            user_id = getattr(order_model, "user_id", None)
+            idempotency_key = getattr(order_model, "idempotency_key", None)
             await self.redis.delete(f"orders:{order_id}")
+            if idempotency_key and not isinstance(idempotency_key, InstrumentedAttribute):
+                await self.redis.delete(f"orders:idempotency_key:{idempotency_key}")
+            if user_id and not isinstance(user_id, InstrumentedAttribute):
+                try:
+                    await self.redis.delete_pattern(f"user_orders:{user_id}:p*:s*:o*")
+                except AttributeError:
+                    self.logger.warning(
+                        "RedisService does not implement delete_pattern; paged user orders cache may be stale.")
         except Exception as e:
             await session.rollback()
             self.logger.error(
                 f"Failed to update status for order {order_id}: {str(e)}")
             raise
+    
+    async def get_revenue_stats(self, range: RevenueRange, session: AsyncSession) -> RevenueStats:
+        """
+        Calculate revenue statistics based on the specified range.
+
+        Args:
+            range (RevenueRange): "thisMonth" or "lastMonth"
+            session (AsyncSession): SQLAlchemy async session
+
+        Returns:
+            RevenueStats: Dict containing revenue_this_month and revenue_last_month
+        """
+        try:
+            now = datetime.utcnow()
+            # Calculate 'this month' start/end
+            this_month_start = datetime(now.year, now.month, 1)
+            if now.month == 12:
+                this_month_end = datetime(now.year + 1, 1, 1)
+            else:
+                this_month_end = datetime(now.year, now.month + 1, 1)
+
+            # Calculate 'last month' start/end
+            if now.month == 1:
+                last_month_start = datetime(now.year - 1, 12, 1)
+                last_month_end = datetime(now.year, 1, 1)
+            else:
+                last_month_start = datetime(now.year, now.month - 1, 1)
+                last_month_end = this_month_start
+
+            # Use .value to send the raw string to DB, not the Enum itself!
+            succeeded_status = OrderStatus.SUCCEEDED.value if hasattr(OrderStatus.SUCCEEDED, "value") else str(OrderStatus.SUCCEEDED)
+
+            stmt_this_month = (
+                select(func.coalesce(func.sum(OrderModel.amount), 0.0))
+                .where(
+                    OrderModel.created_at >= this_month_start,
+                    OrderModel.created_at < this_month_end,
+                    OrderModel.status == succeeded_status
+                )
+            )
+            stmt_last_month = (
+                select(func.coalesce(func.sum(OrderModel.amount), 0.0))
+                .where(
+                    OrderModel.created_at >= last_month_start,
+                    OrderModel.created_at < last_month_end,
+                    OrderModel.status == succeeded_status
+                )
+            )
+            result_this_month = await session.execute(stmt_this_month)
+            result_last_month = await session.execute(stmt_last_month)
+            revenue_this_month = result_this_month.scalar_one()
+            revenue_last_month = result_last_month.scalar_one()
+            return RevenueStats(
+                revenue_this_month=int(revenue_this_month),
+                revenue_last_month=int(revenue_last_month),
+            )
+        except Exception as e:
+            await session.rollback()
+            self.logger.error(
+                f"Failed to get revenue stats: {str(e)}")
+            raise 
 
     async def add_items(self, order_id: str, items: List[OrderItem], session: AsyncSession) -> None:
         try:
             for item in items:
-                session.add(OrderItemModel.from_domain(item, order_id))
+                session.add(EntityMapper.to_orm_order_item(item, order_id))
             await session.commit()
+            order_model = await session.get(OrderModel, order_id)
+            user_id = getattr(order_model, "user_id", None)
+            idempotency_key = getattr(order_model, "idempotency_key", None)
             await self.redis.delete(f"orders:{order_id}")
+            if idempotency_key and not isinstance(idempotency_key, InstrumentedAttribute):
+                await self.redis.delete(f"orders:idempotency_key:{idempotency_key}")
+            if user_id and not isinstance(user_id, InstrumentedAttribute):
+                try:
+                    await self.redis.delete_pattern(f"user_orders:{user_id}:p*:s*:o*")
+                except AttributeError:
+                    self.logger.warning(
+                        "RedisService does not implement delete_pattern; paged user orders cache may be stale.")
         except Exception as e:
             await session.rollback()
             self.logger.error(
                 f"Failed to add items for order {order_id}: {str(e)}")
             raise
 
-    async def attach_payment_details(self, order_id: str, payment_details: PaymentDetails, session: AsyncSession) -> None:
+    async def attach_payment_details(
+        self,
+        order_id: str,
+        payment_details: PaymentDetails,
+        session: AsyncSession
+    ) -> None:
         try:
-            model = PaymentDetailsModel.from_domain(payment_details, order_id)
-            session.add(model)
-            await session.commit()
+            order_model = await session.get(OrderModel, order_id, options=[selectinload(OrderModel.payment_details)])
+            if not order_model:
+                raise ValueError(f"Order {order_id} not found")
+            if order_model.payment_details:
+                pd = order_model.payment_details
+                pd.payment_id = payment_details.payment_id
+                pd.provider = payment_details.provider
+                pd.provider_order_id = payment_details.provider_order_id
+                pd.payment_status = payment_details.payment_status
+                pd.updated_at = payment_details.updated_at or datetime.utcnow()
+            else:
+                model = EntityMapper.to_orm_payment_details(
+                    payment_details, order_id)
+                order_model.payment_details = model
+                session.add(model)
+            await session.flush()
+
+            user_id = getattr(order_model, "user_id", None)
+            idempotency_key = getattr(order_model, "idempotency_key", None)
             await self.redis.delete(f"orders:{order_id}")
+            if idempotency_key and not isinstance(idempotency_key, InstrumentedAttribute):
+                await self.redis.delete(f"orders:idempotency_key:{idempotency_key}")
+            if user_id and not isinstance(user_id, InstrumentedAttribute):
+                try:
+                    await self.redis.delete_pattern(f"user_orders:{user_id}:p*:s*:o*")
+                except AttributeError:
+                    self.logger.warning(
+                        "RedisService does not implement delete_pattern; paged user orders cache may be stale.")
         except Exception as e:
             await session.rollback()
             self.logger.error(
                 f"Failed to attach payment details for order {order_id}: {str(e)}")
             raise
-
-    def _map_to_domain(self, order_model: OrderModel) -> Order:
-        # Safe: items & payment_details are already loaded in memory
-        items = [
-            OrderItem(
-                course_id=item.course_id,
-                price=item.price
-            )
-            for item in (order_model.items or [])
-        ]
-
-        payment_details = None
-        if order_model.payment_details:
-            pd = order_model.payment_details
-            payment_details = PaymentDetails(
-                # id=pd.id,
-                payment_id=pd.payment_id,
-                provider=pd.provider,
-                provider_order_id=pd.provider_order_id,
-                payment_status=pd.payment_status,
-                updated_at=pd.updated_at,
-            )
-        #   amount = Money(amount=self.__dict__[
-        #                      "amount"], currency=self.__dict__["currency"])
-
-        return Order(
-            id=order_model.id,
-            user_id=order_model.user_id,
-            idempotency_key=order_model.idempotency_key,
-            amount=Money(amount=order_model.amount,
-                         currency=order_model.currency),
-            discount=order_model.discount,
-            sub_total=order_model.sub_total,
-            status=OrderStatus(order_model.status) if isinstance(
-                order_model.status, str) else order_model.status,
-            created_at=order_model.created_at,
-            updated_at=order_model.updated_at,
-            items=items,
-            payment_details=payment_details
-        )

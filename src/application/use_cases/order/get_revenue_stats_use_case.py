@@ -1,3 +1,4 @@
+from typing import List
 from src.infrastructure.database.database import get_db
 from src.application.dtos.get_order_dto import GetOrderDto
 from src.domain.exceptions.exceptions import OrderNotFoundException
@@ -29,7 +30,7 @@ class GetRevenueStatsUseCase:
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
-    async def execute(self, range: RevenueRange) -> RevenueStats:
+    async def execute(self, year: int) -> List[RevenueStats]:
         """
         Executes the use case to retrieve revenue statistics for a given range.
         
@@ -37,21 +38,22 @@ class GetRevenueStatsUseCase:
             range (RevenueRange): The range for which to get revenue statistics ("thisMonth", "lastMonth").
         
         Returns:
-            dict: Revenue statistics for the specified period.
+            list: Revenue statistics for the specified period.
         """
+        
         self.logger.info(
-            f"Executing GetRevenueStatsUseCase for range '{range}'"
+            f"Executing GetRevenueStatsUseCase for year '{year}'"
         )
 
         async with get_db() as session:
-            stats = await self.order_repository.get_revenue_stats(range, session)
+            stats = await self.order_repository.get_revenue_stats(year, session)
 
-        if stats is None or not isinstance(stats, dict):
-            self.logger.error(f"No revenue stats found for range '{range}'")
-            raise OrderNotFoundException(f"Revenue statistics not found for range: {range}")
+        if stats is None or not isinstance(stats, list):
+            self.logger.error(f"No revenue stats found for year '{year}'")
+            raise OrderNotFoundException(f"Revenue statistics not found for year: {year}")
 
         self.logger.debug(
-            f"Successfully fetched revenue stats for range '{range}': {stats}"
+            f"Successfully fetched revenue stats for year '{year}': {stats}"
         )
-
+        
         return stats

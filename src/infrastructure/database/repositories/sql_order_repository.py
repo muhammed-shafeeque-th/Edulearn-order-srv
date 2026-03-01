@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, List
 
 from sqlalchemy.exc import IntegrityError
@@ -341,65 +341,54 @@ class SqlOrderRepository(IOrderRepository):
                 f"Failed to update status for order {order_id}: {str(e)}")
             raise
     
-    async def get_revenue_stats(self, range: RevenueRange, session: AsyncSession) -> RevenueStats:
+    async def get_revenue_stats(self, year: int, session: AsyncSession) -> List[RevenueStats]:
         """
-        Calculate revenue statistics based on the specified range.
+        Calculate revenue statistics for orders within a specified year range.
 
         Args:
-            range (RevenueRange): "thisMonth" or "lastMonth"
-            session (AsyncSession): SQLAlchemy async session
+            year (int): The year for which to calculate revenue stats.
+            session (AsyncSession): An active SQLAlchemy async session.
 
         Returns:
-            RevenueStats: Dict containing revenue_this_month and revenue_last_month
+            List[RevenueStats]: A list of dictionaries containing revenue stats for each month.
         """
         try:
-            now = datetime.utcnow()
-            # Calculate 'this month' start/end
-            this_month_start = datetime(now.year, now.month, 1)
-            if now.month == 12:
-                this_month_end = datetime(now.year + 1, 1, 1)
-            else:
-                this_month_end = datetime(now.year, now.month + 1, 1)
-
-            # Calculate 'last month' start/end
-            if now.month == 1:
-                last_month_start = datetime(now.year - 1, 12, 1)
-                last_month_end = datetime(now.year, 1, 1)
-            else:
-                last_month_start = datetime(now.year, now.month - 1, 1)
-                last_month_end = this_month_start
-
             # Use .value to send the raw string to DB, not the Enum itself!
             succeeded_status = OrderStatus.SUCCEEDED.value if hasattr(OrderStatus.SUCCEEDED, "value") else str(OrderStatus.SUCCEEDED)
 
-            stmt_this_month = (
-                select(func.coalesce(func.sum(OrderModel.amount), 0.0))
+            # Query for monthly revenue sums for the given year
+            stmt = (
+                select(
+                    func.extract('month', OrderModel.created_at).label('month'),
+                    func.coalesce(func.sum(OrderModel.amount), 0.0).label('revenue')
+                )
                 .where(
-                    OrderModel.created_at >= this_month_start,
-                    OrderModel.created_at < this_month_end,
+                    func.extract('year', OrderModel.created_at) == year,
                     OrderModel.status == succeeded_status
                 )
+                .group_by(func.extract('month', OrderModel.created_at))
             )
-            stmt_last_month = (
-                select(func.coalesce(func.sum(OrderModel.amount), 0.0))
-                .where(
-                    OrderModel.created_at >= last_month_start,
-                    OrderModel.created_at < last_month_end,
-                    OrderModel.status == succeeded_status
-                )
-            )
-            result_this_month = await session.execute(stmt_this_month)
-            result_last_month = await session.execute(stmt_last_month)
-            revenue_this_month = result_this_month.scalar_one()
-            revenue_last_month = result_last_month.scalar_one()
-            return RevenueStats(
-                revenue_this_month=int(revenue_this_month),
-                revenue_last_month=int(revenue_last_month),
-            )
+
+            result = await session.execute(stmt)
+            monthly_revenues = result.all()
+            
+            # Create a map for quick lookup: {month_number: revenue}
+            revenue_map = {int(row.month): int(row.revenue) for row in monthly_revenues}
+            
+            # Construct the full list for all 12 months
+            stats: List[RevenueStats] = []
+            for month in range(1, 13):
+                stats.append(RevenueStats(
+                    month=month,
+                    revenue=revenue_map.get(month, 0)
+                ))
+            
+            return stats
         except Exception as e:
+            # It's generally better to log and re-raise, but ensure session rollback is handled
+            # Since this is a read operation, rollback is less critical but good practice if transaction started
             await session.rollback()
-            self.logger.error(
-                f"Failed to get revenue stats: {str(e)}")
+            self.logger.error(f"Failed to get revenue stats for year {year}: {str(e)}")
             raise 
 
     async def add_items(self, order_id: str, items: List[OrderItem], session: AsyncSession) -> None:
@@ -464,4 +453,38 @@ class SqlOrderRepository(IOrderRepository):
             await session.rollback()
             self.logger.error(
                 f"Failed to attach payment details for order {order_id}: {str(e)}")
+            raise
+
+    async def find_orders_to_expire(
+        self, 
+        expiry_threshold_minutes: int, 
+        session: AsyncSession,
+        limit: int = 100
+    ) -> List[Order]:
+        """
+        Find orders that are in CREATED or PENDING_PAYMENT status and have passed the expiry threshold.
+        """
+        try:
+            threshold_time = datetime.now(timezone.utc) - timedelta(minutes=expiry_threshold_minutes)
+            
+            # Match status values from OrderStatus enum
+            eligible_statuses = [
+                OrderStatus.CREATED.value if hasattr(OrderStatus.CREATED, "value") else str(OrderStatus.CREATED),
+                OrderStatus.PENDING_PAYMENT.value if hasattr(OrderStatus.PENDING_PAYMENT, "value") else str(OrderStatus.PENDING_PAYMENT)
+            ]
+
+            stmt = (
+                select(OrderModel)
+                .options(selectinload(OrderModel.items), selectinload(OrderModel.payment_details))
+                .where(
+                    OrderModel.status.in_(eligible_statuses),
+                    OrderModel.created_at <= threshold_time
+                )
+                .limit(limit)
+            )
+            result = await session.execute(stmt)
+            order_models = result.scalars().all()
+            return [EntityMapper.to_domain_order(model) for model in order_models]
+        except Exception as e:
+            self.logger.error(f"Failed to find orders to expire: {str(e)}")
             raise

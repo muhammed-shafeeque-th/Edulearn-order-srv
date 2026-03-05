@@ -55,7 +55,7 @@ class CourseServiceClient(ICourseServiceClient):
                     f"Failed to get course {course_id}: {getattr(err, 'message', '')}")
                 raise ValueError(getattr(err, "message", "Unknown error"))
             
-            return {"course_id": response.course.id, "price": response.course.price, "discount_price": getattr(response.course, "discount_price"), "status": getattr(response.course, "status") }
+            return {"course_id": response.course.id, "instructor_id": response.course.instructor_id, "price": response.course.price, "discount_price": getattr(response.course, "discount_price"), "status": getattr(response.course, "status") }
         except Exception as e:
             self.logger.error(f"Failed to get course {course_id}: {str(e)}")
             raise
@@ -143,7 +143,8 @@ class CourseServiceClient(ICourseServiceClient):
                     "course_id": getattr(course, "id", None) or getattr(course, "course_id", ""),
                     "price": getattr(course, "price", 0),
                     "discount_price": getattr(course, "discount_price", getattr(course, "price", 0)),
-                    "status": getattr(course, "status", None)
+                    "status": getattr(course, "status", None),
+                    "instructor_id": getattr(course, "instructor_id", "")
                 }
                 for course in course_list
             ]

@@ -1,3 +1,4 @@
+from src.infrastructure.grpc.generated.order_service_pb2 import RevenueStatsData
 from typing import Any
 import asyncio
 from grpc import  aio
@@ -147,14 +148,18 @@ class OrderServiceImpl(OrderServiceServicer):
 
     async def GetRevenueStats(self, request, context: aio.ServicerContext):
         self.logger.info(
-            f"Received GetRevenueStats request for range {request.range}")
+            f"Received GetRevenueStats request for year {request.year}")
         try:
-            stats = await self.get_revenue_stats_use_case.execute(request.range)
-            self.logger.info(f"Fetched revenue stats for range {request.range}: {stats}")
+            stats = await self.get_revenue_stats_use_case.execute(request.year)
+            self.logger.info(f"Fetched revenue stats for year {request.year}: {stats}")
+            revenue_stats = [RevenueStats(
+                        month=stat.get("month", 0),
+                        revenue=stat.get("revenue", 0)  
+                    ) for stat in stats]
+            self.logger.info("Mapped revenue_status " + str(revenue_stats))
             return GetRevenueStatsResponse(
-                success=RevenueStats(
-                    revenue_this_month=stats.get("revenue_this_month", 0),
-                    revenue_last_month=stats.get("revenue_last_month", 0)
+                success=RevenueStatsData(
+                    revenue_stats=revenue_stats
                 )
             )
         except Exception as e:

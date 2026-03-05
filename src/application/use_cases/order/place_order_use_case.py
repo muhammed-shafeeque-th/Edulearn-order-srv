@@ -88,12 +88,20 @@ class PlaceOrderUseCase:
         ensure_task = self.ensure_user_not_already_enrolled(
             order_dto.user_id, course_ids)
         fetch_prices_task = self.validate_and_fetch_course_prices(course_ids)
-        _, prices = await asyncio.gather(ensure_task, fetch_prices_task)
+        _, prices = await asyncio.gather(ensure_task, fetch_prices_task, return_exception=True)
 
         self.logger.info(f"Fetched Prices: {prices}")
 
+        for cid, price_info in prices.items():
+            if price_info.get("instructor_id") == order_dto.user_id:
+                self.logger.error(f"User {order_dto.user_id} attempted to buy their own course {cid}")
+                raise ValueError({
+                    "ui_message": "You cannot purchase your own course.",
+                    "details": f"Course {cid} is authored by you."
+                })
+
         def _to_scu(value: float) -> int:
-            """Convert to smallest currency unit (e.g. cents) safely."""
+            """Convert to smallest currency unit (e.g. cents)"""
             return int(round(value * 100))
 
         subtotal = sum(
@@ -201,18 +209,18 @@ class PlaceOrderUseCase:
 
         return OrderDto.from_domain(order)
 
-    async def validate_and_fetch_course_prices(self, course_ids: list[str]) -> dict[str, dict[str, float]]:
+    async def validate_and_fetch_course_prices(self, course_ids: list[str]) -> dict[str, dict[str, Any]]:
         """
         Retrieve and validate course price info using cache (Redis) as primary source,
         falling back to gRPC calls for uncached courses, and keeping the cache updated.
-        Returns: { course_id: {"price": float, "discounted_price": float} }
+        Returns: { course_id: {"price": float, "discounted_price": float, "instructor_id": str} }
         Ensures all courses are published, raising a descriptive error if any are not.
         """
         if not course_ids:
             return {}
 
         cache_keys = [f"course_price:{course_id}" for course_id in course_ids]
-        prices: dict[str, dict[str, float]] = {}
+        prices: dict[str, dict[str, Any]] = {}
         uncached_course_ids: list[str] = []
 
         async with self.redis.client.pipeline() as pipe:
@@ -229,6 +237,7 @@ class PlaceOrderUseCase:
                     prices[course_id] = {
                         "discounted_price": float(price_obj.get("discounted_price", price_obj.get("price", 0))),
                         "price": float(price_obj.get("price", 0)),
+                        "instructor_id": price_obj.get("instructor_id", "")
                     }
                     self.metrics.cache_hits(type="course_price")
                 except (ValueError, TypeError, KeyError) as e:
@@ -262,6 +271,7 @@ class PlaceOrderUseCase:
                                 c.get("discount_price", c.get("price", 0))
                             ),
                             "price": float(c.get("price", 0)),
+                            "instructor_id": c.get("instructor_id", ""),
                         }
                 except Exception as e:
                     self.logger.error(
@@ -294,6 +304,7 @@ class PlaceOrderUseCase:
                     fetched_dict[course_id] = {
                         "discounted_price": float(getattr(result, "discount_price", 0) if hasattr(result, "discount_price") else result.get("discount_price", 0)),
                         "price": float(getattr(result, "price", 0) if hasattr(result, "price") else result.get("price", 0)),
+                        "instructor_id": getattr(result, "instructor_id", "") if hasattr(result, "instructor_id") else result.get("instructor_id", "")
                     }
 
             if not_published_courses:

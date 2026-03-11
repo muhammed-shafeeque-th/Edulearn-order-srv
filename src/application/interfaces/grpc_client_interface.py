@@ -10,6 +10,7 @@ class CourseInfo(TypedDict):
     status: CourseStatus
     price: float
     discount_price: float
+    instructor_id: str
 
 
 class CourseEnrollmentResult(TypedDict):

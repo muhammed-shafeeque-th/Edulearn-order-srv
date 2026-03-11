@@ -7,6 +7,7 @@ from src.application.use_cases.order.order_success_use_case import OrderSuccessU
 from src.application.use_cases.order.order_payment_initiated_use_case import OrderPaymentInitiatedUseCase
 from src.application.use_cases.order.get_order_use_case import GetOrderUseCase
 from src.application.use_cases.order.get_orders_use_case import GetOrdersUseCase
+from src.application.use_cases.order.expire_order_use_case import ExpireOrderUseCase
 from src.infrastructure.grpc.clients.couser_service_client import CourseServiceClient
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.redis_interface import IRedisService
@@ -190,6 +191,14 @@ class Container(containers.DeclarativeContainer):
     )
     order_timeout_handler = providers.Factory(
         HandleOrderTimeoutUseCase,
+        order_repository=order_repository,
+        kafka_producer=kafka_producer,
+        redis=redis_client,
+        logging_service=logging_service,
+        metrics_service=metrics_service,
+    )
+    expire_order_use_case = providers.Factory(
+        ExpireOrderUseCase,
         order_repository=order_repository,
         kafka_producer=kafka_producer,
         redis=redis_client,

@@ -11,11 +11,10 @@ RevenueRange = Literal["thisMonth", "lastMonth"]
 
 
 class RevenueStats(TypedDict):
-    revenue_this_month: int
-    revenue_last_month: int
+    month: int
+    revenue: int
 
 
-# This class is an abstract base class for an order repository interface in Python.
 class IOrderRepository(ABC):
     @abstractmethod
     async def save(self, order: Order, session: AsyncSession) -> Order:
@@ -116,19 +115,31 @@ class IOrderRepository(ABC):
     @abstractmethod
     async def get_revenue_stats(
         self, 
-        range: RevenueRange, 
+        year: int, 
         session: AsyncSession
-    ) -> RevenueStats:
+    ) -> List[RevenueStats]:
         """
-        Calculate revenue statistics for orders within a specified date range.
+        Calculate revenue statistics for orders within a specified year range.
 
         Args:
-            range (Literal["thisMonth", "lastMonth"]): The range for which to calculate revenue stats.
+            year (int): The year for which to calculate revenue stats.
             session (AsyncSession): An active SQLAlchemy async session.
 
         Returns:
-            RevenueStats: A dictionary containing revenue stats, e.g., 
-                  {"revenue_this_month": int, "revenue_last_month": int}
+            RevenueStats: A list of dictionaries containing revenue stats, e.g., 
+                  [{"month": 1, "revenue": 100}, {"month": 2, "revenue": 200}]
+        """
+        pass
+
+    @abstractmethod
+    async def find_orders_to_expire(
+        self, 
+        expiry_threshold_minutes: int, 
+        session: AsyncSession,
+        limit: int = 100
+    ) -> List[Order]:
+        """
+        Find orders that are in CREATED or PENDING_PAYMENT status and have passed the expiry threshold.
         """
         pass
 

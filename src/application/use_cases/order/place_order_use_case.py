@@ -5,7 +5,7 @@ from src.domain.events.order_created_event import OrderCreatedEvent, OrderCreate
 from src.shared.events.topics import EVENT_TOPICS
 from src.infrastructure.database.database import get_db
 from src.domain.entities.order_items import OrderItem
-from src.domain.exceptions.exceptions import CourseAlreadyEnrolledException, UserNotFoundException
+from src.domain.exceptions.exceptions import CourseAlreadyEnrolledException, UserNotFoundException, CourseNotPublishedException
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.domain.repositories.order_repository import IOrderRepository
@@ -50,26 +50,26 @@ class PlaceOrderUseCase:
         logging_service: ILoggingService,
         metrics_service: IMetricsService,
     ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
         self.course_service_client = course_service_client
         self.user_service_client = user_service_client
-        self.redis = redis
-        self.logger = logging_service.get_logger("PlaceOrderUseCase")
-        self.metrics = metrics_service
+        self._cache = redis
+        self._logger = logging_service.get_logger("PlaceOrderUseCase")
+        self._metrics = metrics_service
 
     # @retry( stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
     async def execute(self, order_dto: OrderCreateDto, idempotency_key: str | None) -> OrderDto:
-        self.logger.info(
+        self._logger.info(
             f"Executing PlaceOrderUseCase for user {order_dto.user_id}")
 
         if idempotency_key:
             async with get_db() as session:
-                order = await self.order_repository.find_by_idempotency_key(
+                order = await self._order_repository.find_by_idempotency_key(
                     idempotency_key=idempotency_key, session=session
                 )
                 if order:
-                    self.logger.info(
+                    self._logger.info(
                         f"Order exists with idempotency_key {idempotency_key}, skipping creation"
                     )
                     return OrderDto.from_domain(order)
@@ -88,12 +88,25 @@ class PlaceOrderUseCase:
         ensure_task = self.ensure_user_not_already_enrolled(
             order_dto.user_id, course_ids)
         fetch_prices_task = self.validate_and_fetch_course_prices(course_ids)
-        _, prices = await asyncio.gather(ensure_task, fetch_prices_task)
+        results = await asyncio.gather(ensure_task, fetch_prices_task, return_exceptions=True)
+        ensure_result, prices = results
+        if isinstance(ensure_result, Exception):
+            raise ensure_result
+        if isinstance(prices, Exception):
+            raise prices
 
-        self.logger.info(f"Fetched Prices: {prices}")
+        self._logger.info(f"Fetched Prices: {prices}")
+
+        for cid, price_info in prices.items():
+            if price_info.get("instructor_id") == order_dto.user_id:
+                self._logger.error(f"User {order_dto.user_id} attempted to buy their own course {cid}")
+                raise ValueError({
+                    "ui_message": "You cannot purchase your own course.",
+                    "details": f"Course {cid} is authored by you."
+                })
 
         def _to_scu(value: float) -> int:
-            """Convert to smallest currency unit (e.g. cents) safely."""
+            """Convert to smallest currency unit (e.g. cents)"""
             return int(round(value * 100))
 
         subtotal = sum(
@@ -111,7 +124,7 @@ class PlaceOrderUseCase:
 
         if coupon_code:
             try:
-                self.logger.info(f"Checking coupon code: {coupon_code}")
+                self._logger.info(f"Checking coupon code: {coupon_code}")
                 # coupon_response = await self.coupon_service_client.validate_and_get_coupon(
                 #     coupon_code=coupon_code,
                 #     user_id=order_dto.user_id,
@@ -124,10 +137,10 @@ class PlaceOrderUseCase:
                 coupon_discount = int(coupon_response.get(
                     "amount_off", 0))  # in cents
 
-                self.logger.info(
+                self._logger.info(
                     f"Coupon {coupon_code} applied. Discount: {coupon_discount}")
             except Exception as e:
-                self.logger.error(
+                self._logger.error(
                     f"Coupon validation failed or error occurred: {str(e)}")
                 coupon_discount = 0
 
@@ -161,7 +174,7 @@ class PlaceOrderUseCase:
         #     "tax": sales_tax,
         #     "total": total,
         # }
-        # self.logger.info(json.dumps(log_info, indent=2))
+        # self._logger.info(json.dumps(log_info, indent=2))
 
         order = Order.create(
             user_id=order_dto.user_id,
@@ -179,11 +192,11 @@ class PlaceOrderUseCase:
         order.mark_pending_payment()
 
         async with get_db() as session:
-            await self.order_repository.save(order, session)
+            await self._order_repository.save(order, session)
 
-        self.logger.debug("Order creation request has been successful")
+        self._logger.debug("Order creation request has been successful")
 
-        await self.kafka_producer.publish_event(
+        await self._kafka_producer.publish_event(
             EVENT_TOPICS.ORDER_COURSE_CREATED.value,
             event=OrderCreatedEvent(
                 orderId = order.id,
@@ -201,21 +214,21 @@ class PlaceOrderUseCase:
 
         return OrderDto.from_domain(order)
 
-    async def validate_and_fetch_course_prices(self, course_ids: list[str]) -> dict[str, dict[str, float]]:
+    async def validate_and_fetch_course_prices(self, course_ids: list[str]) -> dict[str, dict[str, Any]]:
         """
         Retrieve and validate course price info using cache (Redis) as primary source,
         falling back to gRPC calls for uncached courses, and keeping the cache updated.
-        Returns: { course_id: {"price": float, "discounted_price": float} }
+        Returns: { course_id: {"price": float, "discounted_price": float, "instructor_id": str} }
         Ensures all courses are published, raising a descriptive error if any are not.
         """
         if not course_ids:
             return {}
 
         cache_keys = [f"course_price:{course_id}" for course_id in course_ids]
-        prices: dict[str, dict[str, float]] = {}
+        prices: dict[str, dict[str, Any]] = {}
         uncached_course_ids: list[str] = []
 
-        async with self.redis.client.pipeline() as pipe:
+        async with self._cache.client.pipeline() as pipe:
             for key in cache_keys:
                 pipe.get(key)
             cached_prices = await pipe.execute()
@@ -229,16 +242,17 @@ class PlaceOrderUseCase:
                     prices[course_id] = {
                         "discounted_price": float(price_obj.get("discounted_price", price_obj.get("price", 0))),
                         "price": float(price_obj.get("price", 0)),
+                        "instructor_id": price_obj.get("instructor_id", "")
                     }
-                    self.metrics.cache_hits(type="course_price")
+                    self._metrics.cache_hits(type="course_price")
                 except (ValueError, TypeError, KeyError) as e:
-                    self.logger.warning(
+                    self._logger.warning(
                         f"Cache parse error for course_id {course_id}: {e}; Value was: {cached_value}"
                     )
                     uncached_course_ids.append(course_id)
             else:
                 uncached_course_ids.append(course_id)
-                self.metrics.cache_misses(type="course_price")
+                self._metrics.cache_misses(type="course_price")
 
         if uncached_course_ids:
             batch_supported = hasattr(self.course_service_client, "get_courses_by_ids")
@@ -253,7 +267,7 @@ class PlaceOrderUseCase:
                         course_id = c["course_id"]
                         if status != "published":
                             not_published_courses[course_id] = status
-                            self.logger.warning(
+                            self._logger.warning(
                                 f"Course {course_id} is not published (status: {status})"
                             )
                             continue
@@ -262,9 +276,10 @@ class PlaceOrderUseCase:
                                 c.get("discount_price", c.get("price", 0))
                             ),
                             "price": float(c.get("price", 0)),
+                            "instructor_id": c.get("instructor_id", ""),
                         }
                 except Exception as e:
-                    self.logger.error(
+                    self._logger.error(
                         f"Batch fetch failed for courses {uncached_course_ids}, falling back to per-course requests: {e}"
                     )
                     fetched_dict = {}
@@ -280,20 +295,21 @@ class PlaceOrderUseCase:
                 task_results = await asyncio.gather(*tasks, return_exceptions=True)
                 for course_id, result in zip(missing_courses, task_results):
                     if isinstance(result, (Exception, BaseException)):
-                        self.logger.error(
+                        self._logger.error(
                             f"Failed to fetch course {course_id}: {str(result)}"
                         )
                         raise result
                     status = result.get("status", "unknown") if hasattr(result, "get") else getattr(result, "status", "unknown")
                     if status != "published":
                         not_published_courses[course_id] = status
-                        self.logger.warning(
+                        self._logger.warning(
                             f"Course {course_id} is not published (status: {status})"
                         )
                         continue
                     fetched_dict[course_id] = {
                         "discounted_price": float(getattr(result, "discount_price", 0) if hasattr(result, "discount_price") else result.get("discount_price", 0)),
                         "price": float(getattr(result, "price", 0) if hasattr(result, "price") else result.get("price", 0)),
+                        "instructor_id": getattr(result, "instructor_id", "") if hasattr(result, "instructor_id") else result.get("instructor_id", "")
                     }
 
             if not_published_courses:
@@ -303,13 +319,12 @@ class PlaceOrderUseCase:
                 error_message = (
                     f"The following courses are not available for ordering because they are not published: {courses_list}."
                 )
-                self.logger.error(error_message)
-                raise ValueError({
-                    "ui_message": "Some selected courses are not available for ordering because they are not published.",
-                    "details": error_message
-                })
+                self._logger.error(error_message)
+                raise CourseNotPublishedException(
+                    f"Some selected courses are not available for ordering because they are not published."
+                )
 
-            async with self.redis.client.pipeline() as pipe:
+            async with self._cache.client.pipeline() as pipe:
                 for course_id, val in fetched_dict.items():
                     prices[course_id] = val
                     pipe.set(
@@ -336,7 +351,7 @@ class PlaceOrderUseCase:
         enrolled_courses = []
         for course_id, result in zip(course_ids, task_results):
             if isinstance(result, (Exception, BaseException)):
-                self.logger.error(
+                self._logger.error(
                     f"Failed to fetch course enrollment {course_id}: {str(result)}"
                 )
                 raise result
@@ -344,7 +359,7 @@ class PlaceOrderUseCase:
                 enrolled_courses.append(course_id)
 
         if enrolled_courses:
-            self.logger.error(
+            self._logger.error(
                 f"user {user_id} already enrolled into course(s) {', '.join(enrolled_courses)}, aborting"
             )
             raise CourseAlreadyEnrolledException(

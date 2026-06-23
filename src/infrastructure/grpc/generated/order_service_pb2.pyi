@@ -9,23 +9,29 @@ class GetRevenueStatsResponse(_message.Message):
     __slots__ = ("success", "error")
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    success: RevenueStats
+    success: RevenueStatsData
     error: Error
-    def __init__(self, success: _Optional[_Union[RevenueStats, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, success: _Optional[_Union[RevenueStatsData, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class RevenueStats(_message.Message):
-    __slots__ = ("revenue_this_month", "revenue_last_month")
-    REVENUE_THIS_MONTH_FIELD_NUMBER: _ClassVar[int]
-    REVENUE_LAST_MONTH_FIELD_NUMBER: _ClassVar[int]
-    revenue_this_month: int
-    revenue_last_month: int
-    def __init__(self, revenue_this_month: _Optional[int] = ..., revenue_last_month: _Optional[int] = ...) -> None: ...
+    __slots__ = ("month", "revenue")
+    MONTH_FIELD_NUMBER: _ClassVar[int]
+    REVENUE_FIELD_NUMBER: _ClassVar[int]
+    month: int
+    revenue: float
+    def __init__(self, month: _Optional[int] = ..., revenue: _Optional[float] = ...) -> None: ...
+
+class RevenueStatsData(_message.Message):
+    __slots__ = ("revenue_stats",)
+    REVENUE_STATS_FIELD_NUMBER: _ClassVar[int]
+    revenue_stats: _containers.RepeatedCompositeFieldContainer[RevenueStats]
+    def __init__(self, revenue_stats: _Optional[_Iterable[_Union[RevenueStats, _Mapping]]] = ...) -> None: ...
 
 class GetRevenueStatsRequest(_message.Message):
-    __slots__ = ("range",)
-    RANGE_FIELD_NUMBER: _ClassVar[int]
-    range: str
-    def __init__(self, range: _Optional[str] = ...) -> None: ...
+    __slots__ = ("year",)
+    YEAR_FIELD_NUMBER: _ClassVar[int]
+    year: int
+    def __init__(self, year: _Optional[int] = ...) -> None: ...
 
 class Error(_message.Message):
     __slots__ = ("code", "message", "details")

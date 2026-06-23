@@ -22,24 +22,23 @@ class GetOrdersUseCase:
         logging_service: ILoggingService,
         metrics_service: IMetricsService,
     ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logging_service = logging_service
-        self.logger = logging_service.get_logger("GetOrdersUseCase")
-        self.metrics = metrics_service
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger("GetOrdersUseCase")
+        self._metrics = metrics_service
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
     async def execute(self, dto: GetOrdersByUserDto) -> OrdersUseCaseResponse:
-        self.logger.info(
+        self._logger.info(
             f"Executing GetOrdersUseCase for user {dto.user_id}")
 
         async with get_db() as session:
-            orders, total = await self.order_repository.find_by_user_id(dto.user_id, session, sort_order=dto.sort_order, page=dto.page, page_size=dto.page_size, status=dto.status)
+            orders, total = await self._order_repository.find_by_user_id(dto.user_id, session, sort_order=dto.sort_order, page=dto.page, page_size=dto.page_size, status=dto.status)
 
-        self.logger.debug(
+        self._logger.debug(
             f"Successfully fetched {len(orders)} orders for  user {dto.user_id} ")
 
         return {

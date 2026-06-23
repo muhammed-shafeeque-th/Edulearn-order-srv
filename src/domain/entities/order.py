@@ -227,6 +227,6 @@ class Order:
         #     raise OrderLifecycleException(
         #         f"Order can only be reset from FAILED, CANCELLED, or EXPIRED status, current: {self.status.value}")
 
-        self.status = OrderStatus.CREATED
+        self.status = OrderStatus.PENDING_PAYMENT
         self.payment_details = None
         self.updated_at = datetime.now(timezone.utc)

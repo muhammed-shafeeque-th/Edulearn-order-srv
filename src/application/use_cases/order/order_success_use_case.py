@@ -20,18 +20,18 @@ class OrderSuccessUseCase:
                  redis: IRedisService,
                  logging_service: ILoggingService,
                  metrics_service: IMetricsService):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logger = logging_service.get_logger("OrderSuccessUseCase")
-        self.metrics = metrics_service
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger("OrderSuccessUseCase")
+        self._metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
     async def execute(self, dto: OrderPaymentSuccessEventDto):
         payload = dto.payload
 
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(payload.order_id, session)
+            order = await self._order_repository.find_by_id(payload.order_id, session)
             if not order:
                 raise OrderNotFoundException(
                     f"Order not found: {payload.order_id}")
@@ -52,11 +52,11 @@ class OrderSuccessUseCase:
 
             order.mark_completed()
 
-            await self.order_repository.save(order, session)
+            await self._order_repository.save(order, session)
 
-        self.logger.info(f"Publishing order success Event ")
+        self._logger.info(f"Publishing order success Event ")
         # Publish to other services
-        await self.kafka_producer.publish_event(
+        await self._kafka_producer.publish_event(
             EVENT_TOPICS.ORDER_COURSE_SUCCEEDED.value,
             event=OrderSucceededEvent(
                 orderId=order.id,
@@ -69,5 +69,5 @@ class OrderSuccessUseCase:
             schema=None,
         )
 
-        self.logger.info(f"Order {payload.order_id} marked as COMPLETED")
+        self._logger.info(f"Order {payload.order_id} marked as COMPLETED")
         return

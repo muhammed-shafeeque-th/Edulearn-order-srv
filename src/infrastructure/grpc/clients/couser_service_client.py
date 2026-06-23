@@ -55,7 +55,7 @@ class CourseServiceClient(ICourseServiceClient):
                     f"Failed to get course {course_id}: {getattr(err, 'message', '')}")
                 raise ValueError(getattr(err, "message", "Unknown error"))
             
-            return {"course_id": response.course.id, "price": response.course.price, "discount_price": getattr(response.course, "discount_price"), "status": getattr(response.course, "status") }
+            return {"course_id": response.course.id, "instructor_id": response.course.instructor_id, "price": response.course.price, "discount_price": getattr(response.course, "discount_price"), "status": getattr(response.course, "status") }
         except Exception as e:
             self.logger.error(f"Failed to get course {course_id}: {str(e)}")
             raise
@@ -120,7 +120,7 @@ class CourseServiceClient(ICourseServiceClient):
 
             stub = CourseServiceStub(intercepted_channel)
             request = GetCoursesByIdsRequest(course_ids=course_ids)
-            response = await stub.GetCourse(request)
+            response = await stub.GetCoursesByIds(request)
             has_error = False
             err = None
             err_msg = ''
@@ -135,14 +135,18 @@ class CourseServiceClient(ICourseServiceClient):
                     f"Failed to get courses for {len(course_ids)} courses : {err_msg}")
                 raise ValueError(err_msg)
             # self.logger.info("courses ids response " + str(response))
+            
+            course_list = getattr(getattr(getattr(response, "success", None), "courses", None), "courses", [])
+            
             return [
                 {
-                    "course_id": course.course_id,
-                    "price": course.price,
-                    "discount_price": getattr(course, "discount_price", course.price),
-                    "status": getattr(response.course, "status")
+                    "course_id": getattr(course, "id", None) or getattr(course, "course_id", ""),
+                    "price": getattr(course, "price", 0),
+                    "discount_price": getattr(course, "discount_price", getattr(course, "price", 0)),
+                    "status": getattr(course, "status", None),
+                    "instructor_id": getattr(course, "instructor_id", "")
                 }
-                for course in getattr(response, "courses", [])
+                for course in course_list
             ]
         except Exception as e:
             self.logger.error(

@@ -24,32 +24,32 @@ class BookSessionUseCase:
         metrics_service: IMetricsService,
     ):
         self.session_booking_repository = session_booking_repository
-        self.kafka_producer = kafka_producer
+        self._kafka_producer = kafka_producer
         self.session_service_client = session_service_client
-        self.redis = redis
-        self.logging_service = logging_service
-        self.logger = logging_service.get_logger("BookSessionUseCase")
-        self.metrics = metrics_service
+        self._cache = redis
+        self._logger = logging_service
+        self._logger = logging_service.get_logger("BookSessionUseCase")
+        self._metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
     async def execute(self, booking_dto: SessionBookingCreateDTO) -> SessionBookingDTO:
-        self.logger.info(f"Executing BookSessionUseCase for user {booking_dto.user_id} and session {booking_dto.session_id}")
+        self._logger.info(f"Executing BookSessionUseCase for user {booking_dto.user_id} and session {booking_dto.session_id}")
 
         # Check cache for session details
         cache_key = f"session:{booking_dto.session_id}"
-        cached_session = await self.redis.get(cache_key)
+        cached_session = await self._cache.get(cache_key)
         if cached_session:
             session = json.loads(cached_session)
-            self.logger.debug(f"Cache hit for session {booking_dto.session_id}")
-            self.metrics.cache_hits(type="session")
+            self._logger.debug(f"Cache hit for session {booking_dto.session_id}")
+            self._metrics.cache_hits(type="session")
         else:
             session = await self.session_service_client.get_session(booking_dto.session_id)
             if not session:
-                self.logger.error(f"Session {booking_dto.session_id} not found")
+                self._logger.error(f"Session {booking_dto.session_id} not found")
                 raise ValueError(f"Session {booking_dto.session_id} not found")
-            await self.redis.set(cache_key, json.dumps(session), 3600)
-            self.logger.debug(f"Cache miss for session {booking_dto.session_id}, cached session")
-            self.metrics.cache_misses(type="session")
+            await self._cache.set(cache_key, json.dumps(session), 3600)
+            self._logger.debug(f"Cache miss for session {booking_dto.session_id}, cached session")
+            self._metrics.cache_misses(type="session")
 
         max_slots = session["max_slots"]
         amount = session["price"]
@@ -65,17 +65,17 @@ class BookSessionUseCase:
         saga = SagaOrchestrator(
             steps=[
                 CheckSessionAvailabilityStep(self.session_service_client, booking_dto.session_id, max_slots),
-                CreateSessionBookingStep(booking, self.session_booking_repository, self.redis),
+                CreateSessionBookingStep(booking, self.session_booking_repository, self._cache),
                 RequestSessionPaymentStep(self.kafka_producer),
             ],
-            logging_service=self.logging_service,
-            metrics=self.metrics,
+            logging_service=self._logger,
+            metrics=self._metrics,
         )
         await saga.execute()
 
         # Invalidate cache for session bookings
-        await self.redis.client.delete(f"session_bookings:{booking_dto.session_id}")
-        self.logger.debug(f"Invalidated session bookings cache for session {booking_dto.session_id}")
+        await self._cache.client.delete(f"session_bookings:{booking_dto.session_id}")
+        self._logger.debug(f"Invalidated session bookings cache for session {booking_dto.session_id}")
 
         return SessionBookingDTO(
             id=booking.id,

@@ -19,18 +19,22 @@ service OrderService {
 
 message GetRevenueStatsResponse {
   oneof result {
-    RevenueStats success = 1;
+    RevenueStatsData success = 1;
     Error error = 2;
   }
 }
 
 message RevenueStats {
-    int32 revenue_this_month = 1;
-    int32 revenue_last_month = 2;
+  int32 month = 1;
+  double revenue = 2;
+}  
+
+message RevenueStatsData {
+    repeated RevenueStats revenue_stats = 1;
 }
 
 message GetRevenueStatsRequest {
-    string range = 1;
+    int32 year = 1;
 }
 
 

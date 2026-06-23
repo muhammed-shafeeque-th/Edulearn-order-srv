@@ -89,7 +89,7 @@ with open(payment_schema_path, "r") as f:
 
     class RequestSessionPaymentStep(SagaStep):
         def __init__(self, kafka_producer: IKafkaProducer) -> None:
-            self.kafka_producer = kafka_producer
+            self._kafka_producer = kafka_producer
 
         async def execute(self, context: dict[str, Any]) -> None:
             booking_id = context["booking_id"]
@@ -100,7 +100,7 @@ with open(payment_schema_path, "r") as f:
                 "transactionId": "",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-            await self.kafka_producer.publish_event(
+            await self._kafka_producer.publish_event(
                 "payment-service.session_payment.requested", payment_event, payment_avro_schema
             )
 
@@ -113,6 +113,6 @@ with open(payment_schema_path, "r") as f:
                 "transactionId": "",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-            await self.kafka_producer.publish_event(
+            await self._kafka_producer.publish_event(
                 "payment-service.session_payment.cancelled", payment_event, payment_avro_schema
             )

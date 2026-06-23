@@ -30,23 +30,23 @@ class CreateOrderStep(SagaStep):
         self, order: Order, order_repository: IOrderRepository
     ) -> None:
         self.order = order
-        self.order_repository = order_repository
+        self._order_repository = order_repository
 
     async def execute(self, context: dict[str, Any]) -> None:
-        await self.order_repository.save(self.order)
+        await self._order_repository.save(self.order)
         context["order_id"] = self.order.id
         context["timestamp"] = self.order.created_at.isoformat()
 
     async def compensate(self, context: dict[str, Any]) -> None:
-        order = await self.order_repository.find_by_id(context["order_id"])
+        order = await self._order_repository.find_by_id(context["order_id"])
         if order:
             order.mark_failed()
-            await self.order_repository.save(order)
+            await self._order_repository.save(order)
 
 
 class RequestPaymentStep(SagaStep):
     def __init__(self, kafka_producer: IKafkaProducer) -> None:
-        self.kafka_producer = kafka_producer
+        self._kafka_producer = kafka_producer
 
     async def execute(self, context: dict[str, Any]) -> None:
         order_id = context["order_id"]
@@ -57,7 +57,7 @@ class RequestPaymentStep(SagaStep):
             "transactionId": "",
             "timestamp": context.get("timestamp", datetime.now(timezone.utc).isoformat()),
         }
-        await self.kafka_producer.publish_event(
+        await self._kafka_producer.publish_event(
             "payment-service.payment.requested", payment_event, payment_avro_schema
         )
 
@@ -70,6 +70,6 @@ class RequestPaymentStep(SagaStep):
             "transactionId": "",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        await self.kafka_producer.publish_event(
+        await self._kafka_producer.publish_event(
             "payment-service.payment.cancelled", payment_event, payment_avro_schema
         )

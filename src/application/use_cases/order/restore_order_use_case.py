@@ -20,38 +20,37 @@ class RestoreOrderUseCase:
         logging_service: ILoggingService,
         metrics_service: IMetricsService,
     ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logging_service = logging_service
-        self.logger = logging_service.get_logger("RestoreOrderUseCase")
-        self.metrics = metrics_service
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger("RestoreOrderUseCase")
+        self._metrics = metrics_service
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
     async def execute(self, dto: RestoreOrderDto) -> OrderDto:
-        self.logger.info(
+        self._logger.info(
             f"Executing RestoreOrderUseCase order id {dto.order_id}")
 
         # Create order
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(dto.order_id, session)
+            order = await self._order_repository.find_by_id(dto.order_id, session)
             if not order:
-                self.logger.error(f"Order not found with Id {dto.order_id}")
+                self._logger.error(f"Order not found with Id {dto.order_id}")
                 raise OrderNotFoundException(f"Order not found with Id {dto.order_id}")
 
             if order.user_id != dto.user_id:
-                self.logger.warning(
+                self._logger.warning(
                     f"User ID mismatch: order.user_id={order.user_id}, dto.user_id={dto.user_id}"
                 )
                 raise OrderNotFoundException("Order does not belong to the requesting user.")
 
             order.reset()
-            await self.order_repository.save(order, session)
+            await self._order_repository.save(order, session)
 
         # Invalidate cache for related user orders
-        self.logger.debug(
+        self._logger.debug(
             f"Successfully restored  order for  order id {dto.order_id} ")
 
         return OrderDto.from_domain(order)

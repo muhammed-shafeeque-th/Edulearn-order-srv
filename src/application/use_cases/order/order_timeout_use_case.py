@@ -20,21 +20,21 @@ class HandleOrderTimeoutUseCase:
                  redis: IRedisService,
                  logging_service: ILoggingService,
                  metrics_service: IMetricsService):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logger = logging_service.get_logger(
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger(
             "HandleOrderTimeoutUseCase")
-        self.metrics = metrics_service
+        self._metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
     async def execute(self, dto: OrderPaymentTimeoutEventDto):
         payload = dto.payload
         
-        self.logger.info(f"Processing HandleOrderTimeoutUseCase for order {payload.order_id}")
+        self._logger.info(f"Processing HandleOrderTimeoutUseCase for order {payload.order_id}")
 
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(payload.order_id, session)
+            order = await self._order_repository.find_by_id(payload.order_id, session)
             if not order:
                 raise OrderNotFoundException(
                     f"Order not found: {payload.order_id}")
@@ -54,9 +54,9 @@ class HandleOrderTimeoutUseCase:
                 order.payment_details.mark_expired()
 
             order.mark_expired()
-            await self.order_repository.save(order, session)
+            await self._order_repository.save(order, session)
 
-        await self.kafka_producer.publish_event(
+        await self._kafka_producer.publish_event(
             EVENT_TOPICS.ORDER_COURSE_FAILED.value,
             event=OrderFailedEvent(
                 orderId=order.id,
@@ -69,5 +69,5 @@ class HandleOrderTimeoutUseCase:
             schema=None,
         )
 
-        self.logger.warning(f"Order {payload.order_id} marked as EXPIRED")
+        self._logger.warning(f"Order {payload.order_id} marked as EXPIRED")
         return

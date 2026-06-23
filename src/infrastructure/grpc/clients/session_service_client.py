@@ -16,7 +16,7 @@ from circuitbreaker import circuit
 class SessionServiceClient(ISessionServiceClient):
     def __init__(self, logging_service: ILoggingService, token: str | None = None):
         self.pool = ChannelPool(
-            settings.SESSION_SERVICE_HOST, settings.SESSION_SERVICE_PORT, max_size=10, logging_service=logging_service)
+            settings.SESSION_SERVICE_NAME, settings.SESSION_SERVICE_GRPC, max_size=10, logging_service=logging_service)
         self.logger = logging_service.get_logger("SessionServiceClient")
         self.interceptors = [
             ClientTracingInterceptor(),

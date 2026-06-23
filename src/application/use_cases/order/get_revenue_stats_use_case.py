@@ -20,12 +20,11 @@ class GetRevenueStatsUseCase:
         logging_service: ILoggingService,
         metrics_service: IMetricsService,
     ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logging_service = logging_service
-        self.logger = logging_service.get_logger("GetRevenueStatsUseCase")
-        self.metrics = metrics_service
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger("GetRevenueStatsUseCase")
+        self._metrics = metrics_service
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
@@ -41,18 +40,18 @@ class GetRevenueStatsUseCase:
             list: Revenue statistics for the specified period.
         """
         
-        self.logger.info(
+        self._logger.info(
             f"Executing GetRevenueStatsUseCase for year '{year}'"
         )
 
         async with get_db() as session:
-            stats = await self.order_repository.get_revenue_stats(year, session)
+            stats = await self._order_repository.get_revenue_stats(year, session)
 
         if stats is None or not isinstance(stats, list):
-            self.logger.error(f"No revenue stats found for year '{year}'")
+            self._logger.error(f"No revenue stats found for year '{year}'")
             raise OrderNotFoundException(f"Revenue statistics not found for year: {year}")
 
-        self.logger.debug(
+        self._logger.debug(
             f"Successfully fetched revenue stats for year '{year}': {stats}"
         )
         

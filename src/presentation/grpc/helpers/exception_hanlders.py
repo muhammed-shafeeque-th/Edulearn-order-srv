@@ -64,7 +64,7 @@ async def create_grpc_service_error(
     await ctx.abort(grpc_code, message)
 
 
-def handle_grpc_exception(  exc: Exception, ctx: aio.ServicerContext, response_model: Any, operation: str = "operation", default_message: str = "Internal server error", logger=None):
+async def handle_grpc_exception(  exc: Exception, ctx: aio.ServicerContext, response_model: Any, operation: str = "operation", default_message: str = "Internal server error", logger=None):
         """
         Centralized gRPC exception handler for OrderServiceImpl.
         Handles (in order): RetryError (with DomainException chaining), DomainException, ValidationError, and generic Exception.
@@ -136,9 +136,11 @@ def handle_grpc_exception(  exc: Exception, ctx: aio.ServicerContext, response_m
         else:
             if log:
                 log.error(f"Unhandled exception in {operation}: {exc}")
-            return create_grpc_service_error(
+            await create_grpc_service_error(
                     ctx=ctx, 
                     code="INTERNAL",
                     message=default_message,
                     details=[{"field": "service", "message": str(exc)}]
                 )
+            # Explicitly return nothing because ctx.abort already raised
+            return None

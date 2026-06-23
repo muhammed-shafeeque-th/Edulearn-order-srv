@@ -19,26 +19,25 @@ class GetOrderUseCase:
         logging_service: ILoggingService,
         metrics_service: IMetricsService,
     ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logging_service = logging_service
-        self.logger = logging_service.get_logger("GetOrderUseCase")
-        self.metrics = metrics_service
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger("GetOrderUseCase")
+        self._metrics = metrics_service
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
     async def execute(self, dto: GetOrderDto) -> OrderDto:
-        self.logger.info(
+        self._logger.info(
             f"Executing GetOrderUseCase order id {dto.order_id}")
 
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(dto.order_id, session)
+            order = await self._order_repository.find_by_id(dto.order_id, session)
         if not order:
             raise OrderNotFoundException(f"Order not found with Id {dto.order_id}")
 
-        self.logger.debug(
+        self._logger.debug(
             f"Successfully fetched  order for  order id {dto.order_id} ")
 
         return OrderDto.from_domain(order)

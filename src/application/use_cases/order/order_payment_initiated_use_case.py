@@ -19,20 +19,20 @@ class OrderPaymentInitiatedUseCase:
                  logging_service: ILoggingService,
                  metrics_service: IMetricsService,
                  ):
-        self.order_repository = order_repository
-        self.kafka_producer = kafka_producer
-        self.redis = redis
-        self.logger = logging_service.get_logger(
+        self._order_repository = order_repository
+        self._kafka_producer = kafka_producer
+        self._cache = redis
+        self._logger = logging_service.get_logger(
             "OrderPaymentInitiatedUseCase")
-        self.metrics = metrics_service
+        self._metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
     async def execute(self, dto: OrderPaymentInitiatedEventDto):
         payload = dto.payload
-        self.logger.info(f"Initiating payment for order {payload.order_id}")
+        self._logger.info(f"Initiating payment for order {payload.order_id}")
 
         async with get_db() as session:
-            order = await self.order_repository.find_by_id(payload.order_id, session)
+            order = await self._order_repository.find_by_id(payload.order_id, session)
             if not order:
                 raise OrderNotFoundException(
                     f"Order not found: {payload.order_id}")
@@ -49,7 +49,7 @@ class OrderPaymentInitiatedUseCase:
                 
             order.mark_processing() 
 
-            await self.order_repository.save(order, session)
+            await self._order_repository.save(order, session)
 
-        self.logger.debug(f"Payment initiated for order {payload.order_id}")
+        self._logger.debug(f"Payment initiated for order {payload.order_id}")
         return

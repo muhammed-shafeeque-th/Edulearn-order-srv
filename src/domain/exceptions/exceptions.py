@@ -13,6 +13,9 @@ class CourseNotFoundException(DomainException):
 class CourseAlreadyEnrolledException(DomainException):
     pass
 
+class CourseNotPublishedException(DomainException):
+    pass
+
 class SessionNotFoundException(DomainException):
     pass
 

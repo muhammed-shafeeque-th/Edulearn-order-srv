@@ -90,7 +90,7 @@ class OrderServiceImpl(OrderServiceServicer):
                 success=OrderSuccess(order=result.to_response_data())
             )
         except Exception as e:
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 e,
                 context,
                 OrderResponse,
@@ -114,7 +114,7 @@ class OrderServiceImpl(OrderServiceServicer):
 
         except Exception as e:
             self.logger.error(f"Failed to get order: {str(e)}")
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 e,
                 context,
                 OrderResponse,
@@ -137,7 +137,7 @@ class OrderServiceImpl(OrderServiceServicer):
 
         except Exception as e:
             self.logger.error(f"Failed to restore order: {str(e)}")
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 e,
                 context,
                 OrderResponse,
@@ -164,7 +164,7 @@ class OrderServiceImpl(OrderServiceServicer):
             )
         except Exception as e:
             self.logger.error(f"Failed to get revenue stats: {str(e)}")
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 exc=e,
                 ctx=context,
                 response_model=GetRevenueStatsResponse,
@@ -188,7 +188,7 @@ class OrderServiceImpl(OrderServiceServicer):
 
         except Exception as e:
             self.logger.error(f"Failed to get order status: {str(e)}")
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 exc=e,
                 ctx=context,
                 response_model=OrderResponse,
@@ -217,7 +217,7 @@ class OrderServiceImpl(OrderServiceServicer):
 
         except Exception as e:
             self.logger.error(f"Failed to get orders: {str(e)}")
-            return handle_grpc_exception(
+            return await handle_grpc_exception(
                 e,
                 context,
                 OrdersResponse,

@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sqlalchemy import text
 import asyncio
 from prometheus_client import make_asgi_app
-from src.infrastructure.observability.metrics_service import MetricsService
+from src.infrastructure.observability.metrics.metrics_service import MetricsService
 from src.application.interfaces.tracing_interface import ITracingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.application.interfaces.logging_interface import ILoggingService
@@ -37,6 +37,9 @@ async def lifespan(app: FastAPI):
         # Start Kafka producer
         kafka_producer = container.kafka_producer()
         await kafka_producer.start()
+        
+        logging_service = container.logger_service()
+        
 
         # Start Kafka consumer
         kafka_consumer = container.kafka_consumer()
@@ -44,7 +47,6 @@ async def lifespan(app: FastAPI):
 
         # Start gRPC server
         auth_guard = container.auth_guard()
-        logging_service = container.logging_service()
         metrics_service = container.metrics_service()
         tracing_service = container.tracing_service()
         asyncio.create_task(
@@ -69,6 +71,8 @@ async def lifespan(app: FastAPI):
             # metrics_service.active_orders(count or 0)
 
         yield
+        
+        tracing_service.shutdown()
 
     except Exception as e:
         logging.exception(f"Lifespan startup error: {e}")
@@ -86,13 +90,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Order Service", lifespan=lifespan)
 
-container.logging_service().setup_logger()
+container.logging_service().initialize()
 container.tracing_service().setup_tracing()
 container.tracing_service().instrument_app(app=app)
 
 # Prometheus metrics endpoint
-app.mount("/metrics", make_asgi_app())
+metrics_service = container.metrics_service()
 
+app.mount(
+    "/metrics",
+    make_asgi_app(registry=metrics_service.registry),
+)
 
 @app.get("/health")
 async def health_check(db: AsyncSession = Depends(get_db), logging_service: ILoggingService = Depends(lambda: container.logging_service())):

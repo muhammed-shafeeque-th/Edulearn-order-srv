@@ -7,14 +7,14 @@ class ILoggingService(ABC):
     def get_logger(self, name: str) -> "structlog.stdlib.BoundLogger":
         pass
     
+    # @abstractmethod
+    # def initialize(self) -> "structlog.stdlib.BoundLogger":
+    #     pass
+    
     @abstractmethod
-    def setup_logger(self) -> "structlog.stdlib.BoundLogger":
+    def bind(self, **kwargs: Any) -> None:
         pass
     
     @abstractmethod
-    def bind_context(self, **kwargs: Any) -> "structlog.stdlib.BoundLogger":
-        pass
-    
-    @abstractmethod
-    def unbind_context(self, *keys: str) -> "structlog.stdlib.BoundLogger":
+    def unbind(self, *keys: str) -> None:
         pass

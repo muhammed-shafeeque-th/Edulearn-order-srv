@@ -1,4 +1,6 @@
 from dependency_injector import containers, providers
+from src.infrastructure.observability.logger.logger_config import LoggerConfig
+from src.infrastructure.observability.logger.logger_manager import LoggerManager
 from src.application.use_cases.order.get_revenue_stats_use_case import GetRevenueStatsUseCase
 from src.application.use_cases.order.restore_order_use_case import RestoreOrderUseCase
 from src.application.use_cases.order.order_timeout_use_case import HandleOrderTimeoutUseCase
@@ -28,9 +30,9 @@ from src.infrastructure.redis.redis_client import RedisClient
 from src.infrastructure.grpc.clients.user_service_client import UserServiceClient
 from src.infrastructure.grpc.clients.session_service_client import SessionServiceClient
 from src.infrastructure.grpc.auth_guard import AuthGuard
-from src.infrastructure.observability.logging_service import LoggingService
-from src.infrastructure.observability.metrics_service import MetricsService
-from src.infrastructure.observability.tracing_service import TracingService
+from src.infrastructure.observability.logger.logger_service import LoggingService
+from src.infrastructure.observability.metrics.metrics_service import MetricsService
+from src.infrastructure.observability.tracer.tracing_service import TracingService
 from src.infrastructure.database.database import AsyncSessionFactory
 from src.infrastructure.config.settings import settings
 from src.domain.entities.order import Order
@@ -56,11 +58,22 @@ class Container(containers.DeclarativeContainer):
 
     # Configuration
     config = providers.Configuration(pydantic_settings=[settings])
+    logger_config = providers.Singleton(
+        LoggerConfig,
+        service_name=settings.SERVICE_NAME,
+        environment=settings.ENVIRONMENT,
+        # level=settings.,
+        )
+
+    logger_manager = providers.Singleton(LoggerManager, config=logger_config)
 
     # Observability Services
-    logging_service = providers.Singleton(LoggingService)
     metrics_service = providers.Singleton(MetricsService)
     tracing_service = providers.Singleton(TracingService)
+    logging_service = providers.Singleton(
+        LoggingService,
+        logger_manager=logger_manager,
+    )
 
     # Database
     db_session_factory = providers.Factory(AsyncSessionFactory)

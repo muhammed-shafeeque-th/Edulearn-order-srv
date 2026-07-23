@@ -28,10 +28,17 @@ class Settings(BaseSettings):
     REDIS_TTL: int = 3600  # Cache TTL in seconds
     REDIS_KEY_PREFIX: str = "edulearn:order:"
     
-    JAEGER_HOST: str = "localhost"
-    JAEGER_PORT: int = 6831
+    SERVICE_NAME: str ="order-service"
+
+    ENVIRONMENT: str ="development"
+
+    APP_VERSION: str ="1.0.0"
+
+    OTEL_EXPORTER_OTLP_ENDPOINT: str ="http://otel-collector:4317"
+
+    OTEL_EXPORTER_OTLP_INSECURE: bool =True
+    
     PROMETHEUS_PORT: int = 8000
-    LOKI_URL: str = "http://localhost:3100"
     
     JWT_SECRET: str = "your-secret-key"
     

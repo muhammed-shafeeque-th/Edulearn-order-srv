@@ -15,7 +15,7 @@ from src.application.use_cases.order.get_orders_use_case import GetOrdersUseCase
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.application.interfaces.tracing_interface import ITracingService
-from src.infrastructure.observability.logging_service import LoggingService
+from src.infrastructure.observability.logger.logger_service import LoggingService
 from src.application.dtos.order_create_dto import OrderCreateDto
 from pydantic import ValidationError
 from src.application.dtos.session_booking_create_dto import SessionBookingCreateDTO

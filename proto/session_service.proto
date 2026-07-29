@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package session_service;
+
+service SessionService {
+  rpc GetSession (GetSessionRequest) returns (GetSessionResponse);
+  rpc GetAvailableSlots (GetAvailableSlotsRequest) returns (GetAvailableSlotsResponse);
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  string session_id = 1;
+  float price = 2;
+  int32 max_slots = 3;
+  string error = 4;
+}
+
+message GetAvailableSlotsRequest {
+  string session_id = 1;
+}
+
+message GetAvailableSlotsResponse {
+  int32 available_slots = 1;
+  string error = 2;
+}

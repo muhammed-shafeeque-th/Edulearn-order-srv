@@ -61,7 +61,7 @@ class TracingService(ITracingService):
         self._provider = TracerProvider(resource=resource)
 
         exporter = OTLPSpanExporter(
-            endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT,
+            endpoint=settings.OTLP_ENDPOINT,
             # insecure=settings.OTEL_EXPORTER_OTLP_INSECURE,
         )
 

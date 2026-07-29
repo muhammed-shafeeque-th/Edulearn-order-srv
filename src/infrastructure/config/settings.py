@@ -4,7 +4,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     GRPC_PORT: int = 50056
-    API_PORT: int = 4004
+    HTTP_PORT: int = 4004
     SERVICE_NAME: str = "OrderService"
     USER_SERVICE_NAME: str = "UserService"
     USER_SERVICE_GRPC: str = "user_srv:50052"
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     APP_VERSION: str ="1.0.0"
 
-    OTEL_EXPORTER_OTLP_ENDPOINT: str ="http://otel-collector:4317"
+    OTLP_ENDPOINT: str ="http://otel-collector:4317"
 
     OTEL_EXPORTER_OTLP_INSECURE: bool =True
     

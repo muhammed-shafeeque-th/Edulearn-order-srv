@@ -116,4 +116,4 @@ async def health_check(db: AsyncSession = Depends(get_db), logging_service: ILog
 
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0",
-                port=settings.API_PORT, log_level=logging.INFO, reload=False)
+                port=settings.HTTP_PORT, log_level=logging.INFO, reload=False)

@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -16,7 +17,7 @@ from src.application.interfaces.logging_interface import ILoggingService
 from src.infrastructure.redis.redis_client import RedisClient
 from src.infrastructure.grpc.clients.user_service_client import UserServiceClient
 from src.application.use_cases.order.place_order_use_case import PlaceOrderUseCase
-from src.infrastructure.database.database import get_db, AsyncSession
+from src.infrastructure.database.database import db, get_db, AsyncSession
 from src.presentation.grpc.order_server import start_grpc_server
 from src.infrastructure.di.container import Container
 from src.infrastructure.config.settings import settings
@@ -38,7 +39,7 @@ async def lifespan(app: FastAPI):
         kafka_producer = container.kafka_producer()
         await kafka_producer.start()
         
-        logging_service = container.logger_service()
+        logging_service = container.logging_service()
         
 
         # Start Kafka consumer
@@ -94,6 +95,7 @@ container.logging_service().initialize()
 container.tracing_service().setup_tracing()
 container.tracing_service().instrument_app(app=app)
 
+
 # Prometheus metrics endpoint
 metrics_service = container.metrics_service()
 
@@ -102,17 +104,39 @@ app.mount(
     make_asgi_app(registry=metrics_service.registry),
 )
 
-@app.get("/health")
-async def health_check(db: AsyncSession = Depends(get_db), logging_service: ILoggingService = Depends(lambda: container.logging_service())):
+@app.get("/healthz")
+async def health_check( logging_service: ILoggingService = Depends(lambda: container.logging_service())):
     try:
-        await db.execute(text("SELECT 1"))
-        await container.redis_client().client.ping()
-        return {"status": "healthy", "database": "ok", "redis": "ok"}
+        return {"status": "healthy"}
     except Exception as e:
         logging_service.get_logger("HealthCheck").error(
             f"Health check failed: {str(e)}")
-        # os._exit(1)
         raise HTTPException(status_code=503, detail="Service Unhealthy")
+    
+@app.get("/ready")
+async def readiness_check(db: AsyncSession = Depends(db), logging_service: ILoggingService = Depends(lambda: container.logging_service())):
+    status = {
+        "redis": "up",
+        "database": "up",
+    }
+    try:
+        try:
+            await db.execute(text("SELECT 1"))
+        except Exception as e:
+            status["database"] = "down"
+            raise
+        
+        try:  
+            await container.redis_client().client.ping()
+        except Exception as e:
+            status["redis"] = "down"
+            raise
+        
+        return {"status": "healthy", **status}
+    except Exception as e:
+        logging_service.get_logger("HealthCheck").error(
+            f"Health check failed: {str(e)}")
+        raise HTTPException(status_code=503, detail={"status": "unhealthy", **status})
 
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0",

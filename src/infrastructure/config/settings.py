@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_GROUP: str = "order-service-group"
 
     model_config = SettingsConfigDict(
-        env_file=".env" if os.getenv("DOCKER_ENV") != "true" else None,
+        env_file=".env" if os.getenv("ENVIRONMENT") == "development" else None,
         env_file_encoding="utf-8", extra="ignore")
 
 

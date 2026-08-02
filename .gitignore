@@ -2,7 +2,6 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=node
 
 .venv/
-**/**/_*.py*
 **/_*/**
 
 ### Node ###

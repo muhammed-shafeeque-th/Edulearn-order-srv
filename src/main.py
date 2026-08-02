@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
                 get_revenue_stats_use_case=container.get_revenue_stats_use_case(),
                 get_order_use_case=container.get_order_use_case(),
                 restore_order_use_case=container.restore_order_use_case(),
-                book_session_use_case=container.book_session_use_case(),
+                # book_session_use_case=container.book_session_use_case(),
                 auth_guard=auth_guard,
                 logger_service=logging_service,
                 metrics=metrics_service,

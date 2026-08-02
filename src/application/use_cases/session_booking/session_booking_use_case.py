@@ -27,7 +27,6 @@ class BookSessionUseCase:
         self._kafka_producer = kafka_producer
         self.session_service_client = session_service_client
         self._cache = redis
-        self._logger = logging_service
         self._logger = logging_service.get_logger("BookSessionUseCase")
         self._metrics = metrics_service
 
@@ -66,7 +65,7 @@ class BookSessionUseCase:
             steps=[
                 CheckSessionAvailabilityStep(self.session_service_client, booking_dto.session_id, max_slots),
                 CreateSessionBookingStep(booking, self.session_booking_repository, self._cache),
-                RequestSessionPaymentStep(self.kafka_producer),
+                RequestSessionPaymentStep(self._kafka_producer),
             ],
             logging_service=self._logger,
             metrics=self._metrics,

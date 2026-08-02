@@ -52,7 +52,7 @@ class OrderServiceImpl(OrderServiceServicer):
                  get_revenue_stats_use_case: GetRevenueStatsUseCase,
                  restore_order_use_case: RestoreOrderUseCase,
                  get_orders_use_case: GetOrdersUseCase,
-                 book_session_use_case: BookSessionUseCase,
+                #  book_session_use_case: BookSessionUseCase,
                  logger: ILoggingService
                  ):
         self.place_order_use_case = place_order_use_case
@@ -61,7 +61,7 @@ class OrderServiceImpl(OrderServiceServicer):
         self.get_revenue_stats_use_case = get_revenue_stats_use_case
         self.restore_order_use_case = restore_order_use_case
         self.get_orders_use_case = get_orders_use_case
-        self.book_session_use_case = book_session_use_case
+        # self.book_session_use_case = book_session_use_case
         self.logger = logger.get_logger("OrderServiceImpl")
 
    
@@ -226,60 +226,60 @@ class OrderServiceImpl(OrderServiceServicer):
                 logger=self.logger
             )
 
-    async def BookSession(self, request, context: aio.ServicerContext):
-        self.logger.info(
-            f"Received BookSession request for user {request.user_id}")
-        try:
-            booking_dto = SessionBookingCreateDTO(
-                user_id=request.user_id, session_id=request.session_id)
-            result = await self.book_session_use_case.execute(booking_dto)
-            self.logger.info(
-                f"Session booking {result.id} created successfully")
-            return BookSessionResponse(
-                success=BookSessionSuccess(
-                    id=result.id,
-                    user_id=result.user_id,
-                    session_id=result.session_id,
-                    amount=result.amount,
-                    currency=result.currency,
-                    status=result.status,
-                    created_at=result.created_at.isoformat(),
-                    updated_at=result.updated_at.isoformat(),
-                )
-            )
-        except DomainException as e:
-            return OrderResponse(
-                error=create_error_response(
-                    code=type(e).__name__,
-                    message=str(e),
-                    details=[{"field": "request", "message": str(e)}]
-                )
-            )
-        except ValidationError as ve:
-            details = []
-            for err in ve.errors():
-                field_path = ".".join(str(p) for p in err.get("loc", []))
-                details.append({
-                    "field": field_path or "request",
-                    "message": err.get("msg", "Invalid value"),
-                })
-            self.logger.error(f"Validation error in PlaceOrder: {ve}")
-            return OrderResponse(
-                error=create_error_response(
-                    code="INVALID_ARGUMENT",
-                    message="Invalid request data",
-                    details=details,
-                )
-            )
+    # async def BookSession(self, request, context: aio.ServicerContext):
+    #     self.logger.info(
+    #         f"Received BookSession request for user {request.user_id}")
+    #     try:
+    #         booking_dto = SessionBookingCreateDTO(
+    #             user_id=request.user_id, session_id=request.session_id)
+    #         result = await self.book_session_use_case.execute(booking_dto)
+    #         self.logger.info(
+    #             f"Session booking {result.id} created successfully")
+    #         return BookSessionResponse(
+    #             success=BookSessionSuccess(
+    #                 id=result.id,
+    #                 user_id=result.user_id,
+    #                 session_id=result.session_id,
+    #                 amount=result.amount,
+    #                 currency=result.currency,
+    #                 status=result.status,
+    #                 created_at=result.created_at.isoformat(),
+    #                 updated_at=result.updated_at.isoformat(),
+    #             )
+    #         )
+    #     except DomainException as e:
+    #         return OrderResponse(
+    #             error=create_error_response(
+    #                 code=type(e).__name__,
+    #                 message=str(e),
+    #                 details=[{"field": "request", "message": str(e)}]
+    #             )
+    #         )
+    #     except ValidationError as ve:
+    #         details = []
+    #         for err in ve.errors():
+    #             field_path = ".".join(str(p) for p in err.get("loc", []))
+    #             details.append({
+    #                 "field": field_path or "request",
+    #                 "message": err.get("msg", "Invalid value"),
+    #             })
+    #         self.logger.error(f"Validation error in PlaceOrder: {ve}")
+    #         return OrderResponse(
+    #             error=create_error_response(
+    #                 code="INVALID_ARGUMENT",
+    #                 message="Invalid request data",
+    #                 details=details,
+    #             )
+    #         )
 
-        except Exception as e:
-            self.logger.error(f"Failed to book session: {str(e)}")
-            return create_grpc_service_error(
-                    ctx=context,
-                    code="INTERNAL",
-                    message="Failed to book session",
-                    details=[{"field": "service", "message": str(e)}]
-            )
+    #     except Exception as e:
+    #         self.logger.error(f"Failed to book session: {str(e)}")
+    #         return create_grpc_service_error(
+    #                 ctx=context,
+    #                 code="INTERNAL",
+    #                 message="Failed to book session",
+    #                 details=[{"field": "service", "message": str(e)}]
+    #         )
 
     
     
@@ -288,7 +288,7 @@ class OrderServiceImpl(OrderServiceServicer):
 
 async def start_grpc_server(
     place_order_use_case: PlaceOrderUseCase,
-    book_session_use_case: BookSessionUseCase,
+    # book_session_use_case: BookSessionUseCase,
     get_order_use_case: GetOrderUseCase,
     get_revenue_stats_use_case: GetRevenueStatsUseCase,
     restore_order_use_case: RestoreOrderUseCase,
@@ -312,7 +312,9 @@ async def start_grpc_server(
                          get_revenue_stats_use_case,
                          restore_order_use_case,
                          get_orders_use_case,
-                         book_session_use_case, logger_service), server
+                        #  book_session_use_case,
+                         logger_service),
+                         server
     )
     logger = logger_service.get_logger("start_grpc_server")
     server.add_insecure_port(f'[::]:{settings.GRPC_PORT}')

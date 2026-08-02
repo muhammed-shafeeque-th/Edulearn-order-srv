@@ -36,7 +36,6 @@ from src.infrastructure.observability.tracer.tracing_service import TracingServi
 from src.infrastructure.database.database import AsyncSessionFactory
 from src.infrastructure.config.settings import settings
 from src.domain.entities.order import Order
-from src.domain.entities.session_booking import SessionBooking
 
 
 class Container(containers.DeclarativeContainer):
@@ -193,15 +192,15 @@ class Container(containers.DeclarativeContainer):
         logging_service=logging_service,
         metrics_service=metrics_service,
     )
-    book_session_use_case = providers.Factory(
-        BookSessionUseCase,
-        session_booking_repository=session_booking_repository,
-        kafka_producer=kafka_producer,
-        session_service_client=session_service_client,
-        redis=redis_client,
-        logging_service=logging_service,
-        metrics_service=metrics_service,
-    )
+    # book_session_use_case = providers.Factory(
+    #     BookSessionUseCase,
+    #     session_booking_repository=session_booking_repository,
+    #     kafka_producer=kafka_producer,
+    #     session_service_client=session_service_client,
+    #     redis=redis_client,
+    #     logging_service=logging_service,
+    #     metrics_service=metrics_service,
+    # )
     order_timeout_handler = providers.Factory(
         HandleOrderTimeoutUseCase,
         order_repository=order_repository,

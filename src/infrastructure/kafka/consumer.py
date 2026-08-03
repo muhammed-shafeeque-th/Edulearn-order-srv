@@ -78,6 +78,40 @@ class KafkaConsumer:
         self.dlq_topic = self.DLQ_TOPIC
 
         self.executor = ThreadPoolExecutor(max_workers=self.MAX_WORKERS)
+        
+    async def is_healthy(self) -> bool:
+        """Verifies connection health via public APIs."""
+        try:
+            # 1. Fetch cluster topics to verify active network connectivity
+            # This makes a quick metadata request to the broker.
+            await self.consumer.topics()
+            
+            # 2. Verify if partitions are assigned (Only if you expect active subscriptions)
+            # If the group is actively rebalancing or disconnected, this changes.
+            assignments = self.consumer.assignment()
+            if not assignments:
+                # Optional: If you expect it to always have a partition, 
+                # return False here. Otherwise, it might still be rebalancing.
+                pass
+            
+            return True
+        except Exception:
+            return False
+
+    async def check_broker_readiness(self) -> bool:
+        """Check Kafka broker readiness by bootstrapping consumer client metadata."""
+        try:
+            client = getattr(self.consumer, "_client", None)
+            if client is None:
+                await self.consumer.start()
+                await self.consumer.stop()
+                return True
+
+            await client.bootstrap()
+            return True
+        except Exception as e:
+            self.logger.error(f"Kafka broker readiness check failed: {e}")
+            return False
 
     async def start(self):
         await self.consumer.start()

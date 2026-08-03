@@ -118,6 +118,7 @@ async def readiness_check(db: AsyncSession = Depends(db), logging_service: ILogg
     status = {
         "redis": "up",
         "database": "up",
+        "kafka": "up",
     }
     try:
         try:
@@ -131,6 +132,13 @@ async def readiness_check(db: AsyncSession = Depends(db), logging_service: ILogg
         except Exception as e:
             status["redis"] = "down"
             raise
+        
+        kafka_is_healthy = await container.kafka_consumer().is_healthy()
+        status["kafka"] = "up" if kafka_is_healthy else "down"
+        
+        is_all_healthy = all(value == "up" for value in status.values())
+        if not is_all_healthy:
+            raise RuntimeError("One or more readiness checks failed")
         
         return {"status": "healthy", **status}
     except Exception as e:

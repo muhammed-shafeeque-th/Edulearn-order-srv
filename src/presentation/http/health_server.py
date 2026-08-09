@@ -10,9 +10,8 @@ from sqlalchemy import text
 
 
 class HealthServer:
-    def __init__(self, logger: ILoggingService, redis: IRedisService,  kafka: KafkaConsumer, db: AsyncSession = Depends(db)) -> None:
+    def __init__(self, logger: ILoggingService, redis: IRedisService,  kafka: KafkaConsumer) -> None:
         self.logger = logger.get_logger("HealthServer")
-        self.db = db
         self.kafka = kafka
         self.redis = redis
         
@@ -25,7 +24,7 @@ class HealthServer:
                 f"Health check failed: {str(e)}")
             raise HTTPException(status_code=503, detail="Service Unhealthy")
     
-    async def readiness_check(self):
+    async def readiness_check(self, db: AsyncSession):
         status = {
             "redis": "up",
             "database": "up",
@@ -33,7 +32,7 @@ class HealthServer:
         }
         try:
             try:
-                await self.db.execute(text("SELECT 1"))
+                await db.execute(text("SELECT 1"))
             except Exception as e:
                 status["database"] = "down"
                 raise

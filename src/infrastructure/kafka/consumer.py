@@ -4,12 +4,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from src.presentation.kafka.kafka_handlers import KafkaEventHandlers
+from src.infrastructure.kafka.handler_registry import UnknownTopicError
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.domain.exceptions.exceptions import OrderNotFoundException
 from src.infrastructure.config.settings import settings
-from src.shared.events.topics import EVENT_TOPICS
 from tenacity import RetryError
 from pydantic import ValidationError
 
@@ -27,18 +27,11 @@ class KafkaConsumer:
         metrics_service: IMetricsService,
         logging_service: ILoggingService,
     ):
-
-        self.payment_topics = [
-            EVENT_TOPICS.PAYMENT_ORDER_INITIATED.value,
-            EVENT_TOPICS.PAYMENT_ORDER_SUCCEEDED.value,
-            EVENT_TOPICS.PAYMENT_ORDER_FAILED.value,
-            EVENT_TOPICS.PAYMENT_ORDER_TIMEOUT.value,
-        ]
-        
         self.consumer: AIOKafkaConsumer | None = None
 
         self.handlers = handlers
-
+        # Topics are now derived from whatever handlers register themselves
+        self.subscribed_topics = self.handlers.get_registered_topics()
 
         self.kafka_producer = kafka_producer
         self.metrics_service = metrics_service
@@ -47,24 +40,19 @@ class KafkaConsumer:
         self.dlq_topic = self.DLQ_TOPIC
 
         self.executor = ThreadPoolExecutor(max_workers=self.MAX_WORKERS)
-        
+
     async def is_healthy(self) -> bool:
         """Verifies connection health via public APIs."""
         try:
-            if self.consumer is None: raise RuntimeError("Kafka consumer not started")
-            
-            # 1. Fetch cluster topics to verify active network connectivity
-            # This makes a quick metadata request to the broker.
+            if self.consumer is None:
+                raise RuntimeError("Kafka consumer not started")
+
             await self.consumer.topics()
-            
-            # 2. Verify if partitions are assigned (Only if you expect active subscriptions)
-            # If the group is actively rebalancing or disconnected, this changes.
+
             assignments = self.consumer.assignment()
             if not assignments:
-                # Optional: If you expect it to always have a partition, 
-                # return False here. Otherwise, it might still be rebalancing.
                 pass
-            
+
             return True
         except Exception:
             return False
@@ -72,8 +60,9 @@ class KafkaConsumer:
     async def check_broker_readiness(self) -> bool:
         """Check Kafka broker readiness by bootstrapping consumer client metadata."""
         try:
-            if self.consumer is None: raise RuntimeError("Kafka consumer not started")
-            
+            if self.consumer is None:
+                raise RuntimeError("Kafka consumer not started")
+
             client = getattr(self.consumer, "_client", None)
             if client is None:
                 await self.consumer.start()
@@ -89,7 +78,7 @@ class KafkaConsumer:
     async def start(self):
         if self.consumer is None:
             self.consumer = AIOKafkaConsumer(
-                *self.payment_topics,
+                *self.subscribed_topics,
                 bootstrap_servers=settings.KAFKA_BROKER,
                 group_id=settings.KAFKA_CONSUMER_GROUP or "order-service-group",
                 auto_offset_reset="latest",
@@ -106,7 +95,6 @@ class KafkaConsumer:
                 try:
                     await self.handle_message(msg)
                 except Exception as msg_exc:
-                    # Don't let a single message crash the loop
                     self.logger.error(
                         f"Error within message handling loop: {msg_exc}")
                 await self.consumer.commit()
@@ -114,7 +102,7 @@ class KafkaConsumer:
             self.logger.error(f"Consumer crashed: {str(e)}")
         finally:
             await self.consumer.stop()
-            self.executor.shutdown(wait=False)  # Don't block on threads
+            self.executor.shutdown(wait=False)
 
     async def handle_message(self, msg: Any) -> None:
         """Process a single Kafka message with error handling and send to DLQ on failure."""
@@ -135,22 +123,12 @@ class KafkaConsumer:
             await self.send_to_dlq(msg, error=str(e))
 
     async def route_event(self, topic: str, event: dict) -> None:
-        """Routes event to appropriate handler based on topic."""
+        """Routes event to its registered handler via the handler registry."""
         try:
-            if topic == EVENT_TOPICS.PAYMENT_ORDER_INITIATED.value:
-                await self.handlers.handle_payment_created(event=event)
+            await self.handlers.dispatch(topic, event)
 
-            elif topic == EVENT_TOPICS.PAYMENT_ORDER_SUCCEEDED.value:
-                await self.handlers.handle_payment_succeed(event=event)
-
-            elif topic == EVENT_TOPICS.PAYMENT_ORDER_FAILED.value:
-                await self.handlers.handle_payment_failed(event=event)
-            
-            elif topic == EVENT_TOPICS.PAYMENT_ORDER_TIMEOUT.value:
-                await self.handlers.handle_payment_timeout(event=event)
-
-            else:
-                self.logger.warning(f"Unknown topic received: {topic}")
+        except UnknownTopicError:
+            self.logger.warning(f"Unknown topic received: {topic}")
 
         except ValidationError as ve:
             self.logger.error(
@@ -174,9 +152,7 @@ class KafkaConsumer:
                 self.logger.error(
                     f"RetryError while processing event for {topic}: {error_detail}"
                 )
-
             raise
-            # await self.send_to_dlq_from_payload(topic, event, error=error_detail)
 
         except Exception as e:
             self.logger.error(f"Failed to process event for {topic}: {str(e)}")
@@ -197,15 +173,3 @@ class KafkaConsumer:
             self.logger.warning(f"Sent message to DLQ topic {self.dlq_topic}")
         except Exception as e:
             self.logger.error(f"Failed to publish to DLQ: {e}")
-
-    # async def send_to_dlq_from_payload(self, topic: str, payload: dict, error: str):
-    #     """Send failed payload (non-message object) to DLQ"""
-    #     dlq_event = {
-    #         "eventType": "DLQEvent",
-    #         "originalTopic": topic,
-    #         "originalMessage": json.dumps(payload),
-    #         "error": error,
-    #         "timestamp": datetime.utcnow().isoformat(),
-    #     }
-    #     await self.kafka_producer.publish_event(self.dlq_topic, event=dlq_event, schema=None)
-    #     self.logger.warning(f"Sent payload to DLQ topic {self.dlq_topic}")

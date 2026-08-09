@@ -241,6 +241,7 @@ class Container(containers.DeclarativeContainer):
             get_revenue_stats_use_case=get_revenue_stats_use_case,
             get_order_use_case=get_order_use_case,
             restore_order_use_case=restore_order_use_case,
+            logger=logging_service,
             # book_session_use_case=book_session_use_case,
         )
     

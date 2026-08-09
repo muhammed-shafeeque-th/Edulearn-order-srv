@@ -1,16 +1,15 @@
+from typing import TypedDict
+from src.application.use_cases.order.interfaces.get_orders_usecase_interface import IGetOrdersUseCase, OrdersUseCaseResponse
+from src.application.dtos.get_orders_by_user_dto import GetOrdersByUserDto
 from src.infrastructure.database.database import get_db
-from src.application.dtos.get_order_dto import GetOrderDto
-from src.domain.exceptions.exceptions import OrderNotFoundException
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.domain.repositories.order_repository import IOrderRepository
-from src.application.dtos.order_dto import OrderDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.redis_interface import IRedisService
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-
-class GetOrderUseCase:
+class GetOrdersUseCase(IGetOrdersUseCase):
     def __init__(
         self,
         order_repository: IOrderRepository,
@@ -22,22 +21,23 @@ class GetOrderUseCase:
         self._order_repository = order_repository
         self._kafka_producer = kafka_producer
         self._cache = redis
-        self._logger = logging_service.get_logger("GetOrderUseCase")
+        self._logger = logging_service.get_logger("GetOrdersUseCase")
         self._metrics = metrics_service
 
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
-    async def execute(self, dto: GetOrderDto) -> OrderDto:
+    async def execute(self, dto: GetOrdersByUserDto) -> OrdersUseCaseResponse:
         self._logger.info(
-            f"Executing GetOrderUseCase order id {dto.order_id}")
+            f"Executing GetOrdersUseCase for user {dto.user_id}")
 
         async with get_db() as session:
-            order = await self._order_repository.find_by_id(dto.order_id, session)
-        if not order:
-            raise OrderNotFoundException(f"Order not found with Id {dto.order_id}")
+            orders, total = await self._order_repository.find_by_user_id(dto.user_id, session, sort_order=dto.sort_order, page=dto.page, page_size=dto.page_size, status=dto.status)
 
         self._logger.debug(
-            f"Successfully fetched  order for  order id {dto.order_id} ")
+            f"Successfully fetched {len(orders)} orders for  user {dto.user_id} ")
 
-        return OrderDto.from_domain(order)
+        return {
+            "orders":  orders,
+            "total": total
+        }

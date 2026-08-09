@@ -1,17 +1,16 @@
 from typing import List
+from src.application.use_cases.order.interfaces.get_revenue_status_usecase_interface import IGetRevenueStatsUseCase
 from src.infrastructure.database.database import get_db
-from src.application.dtos.get_order_dto import GetOrderDto
 from src.domain.exceptions.exceptions import OrderNotFoundException
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.domain.repositories.order_repository import IOrderRepository, RevenueRange, RevenueStats
-from src.application.dtos.order_dto import OrderDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.redis_interface import IRedisService
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
-class GetRevenueStatsUseCase:
+class GetRevenueStatsUseCase(IGetRevenueStatsUseCase):
     def __init__(
         self,
         order_repository: IOrderRepository,
@@ -30,15 +29,7 @@ class GetRevenueStatsUseCase:
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
     async def execute(self, year: int) -> List[RevenueStats]:
-        """
-        Executes the use case to retrieve revenue statistics for a given range.
-        
-        Args:
-            range (RevenueRange): The range for which to get revenue statistics ("thisMonth", "lastMonth").
-        
-        Returns:
-            list: Revenue statistics for the specified period.
-        """
+       
         
         self._logger.info(
             f"Executing GetRevenueStatsUseCase for year '{year}'"

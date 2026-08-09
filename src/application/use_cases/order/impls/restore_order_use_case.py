@@ -1,17 +1,17 @@
+from src.application.use_cases.order.interfaces.restore_order_usecase_interface import IRestoreOrderUseCase
+from src.domain.entities.order import Order
 from src.application.dtos.restore_order_dto import RestoreOrderDto
 from src.infrastructure.database.database import get_db
-from src.application.dtos.get_order_dto import GetOrderDto
 from src.domain.exceptions.exceptions import OrderNotFoundException
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.domain.repositories.order_repository import IOrderRepository
-from src.application.dtos.order_dto import OrderDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.redis_interface import IRedisService
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
-class RestoreOrderUseCase:
+class RestoreOrderUseCase(IRestoreOrderUseCase):
     def __init__(
         self,
         order_repository: IOrderRepository,
@@ -29,7 +29,7 @@ class RestoreOrderUseCase:
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10)
     )
-    async def execute(self, dto: RestoreOrderDto) -> OrderDto:
+    async def execute(self, dto: RestoreOrderDto) -> Order:
         self._logger.info(
             f"Executing RestoreOrderUseCase order id {dto.order_id}")
 
@@ -53,4 +53,4 @@ class RestoreOrderUseCase:
         self._logger.debug(
             f"Successfully restored  order for  order id {dto.order_id} ")
 
-        return OrderDto.from_domain(order)
+        return order

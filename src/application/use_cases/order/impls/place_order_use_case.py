@@ -1,6 +1,7 @@
 import asyncio
 import json
 from typing import Any
+from src.application.use_cases.order.interfaces.place_order_usecase_interface import IPlaceOrderUseCase
 from src.domain.events.order_created_event import OrderCreatedEvent, OrderCreatedEventType
 from src.shared.events.topics import EVENT_TOPICS
 from src.infrastructure.database.database import get_db
@@ -10,14 +11,12 @@ from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.domain.repositories.order_repository import IOrderRepository
 from src.application.dtos.order_create_dto import OrderCreateDto
-from src.application.dtos.order_dto import OrderDto
 from src.application.interfaces.grpc_client_interface import (
     CourseInfo,
     ICourseServiceClient,
     IUserServiceClient,
 )
 from src.application.dtos.order_create_dto import OrderCreateDto
-from src.application.dtos.order_dto import OrderDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
@@ -29,14 +28,13 @@ from src.domain.exceptions.exceptions import UserNotFoundException
 from src.domain.repositories.order_repository import IOrderRepository
 from src.domain.value_objects.money import Money
 from src.application.dtos.order_create_dto import OrderCreateDto
-from src.application.dtos.order_dto import OrderDto
 from src.shared.events.topics import EVENT_TOPICS
 from src.infrastructure.database.database import get_db
 from src.domain.exceptions.exceptions import UserNotFoundException
 from uuid import uuid4
 
 
-class PlaceOrderUseCase:
+class PlaceOrderUseCase(IPlaceOrderUseCase):
     CACHE_EXPIRATION_SEC = 3600 # 1hr
     SALES_TAX_RATE = 0.0  # TODO: Set to actual rate, e.g. 0.07 for 7% sales tax
 
@@ -59,7 +57,7 @@ class PlaceOrderUseCase:
         self._metrics = metrics_service
 
     # @retry( stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
-    async def execute(self, order_dto: OrderCreateDto, idempotency_key: str | None) -> OrderDto:
+    async def execute(self, order_dto: OrderCreateDto, idempotency_key: str | None) -> Order:
         self._logger.info(
             f"Executing PlaceOrderUseCase for user {order_dto.user_id}")
 
@@ -72,7 +70,7 @@ class PlaceOrderUseCase:
                     self._logger.info(
                         f"Order exists with idempotency_key {idempotency_key}, skipping creation"
                     )
-                    return OrderDto.from_domain(order)
+                    return order
 
         user = await self.user_service_client.get_user(order_dto.user_id)
         if not user:
@@ -92,7 +90,7 @@ class PlaceOrderUseCase:
         ensure_result, prices = results
         if isinstance(ensure_result, Exception):
             raise ensure_result
-        if isinstance(prices, Exception):
+        if isinstance(prices, (Exception, BaseException)):
             raise prices
 
         self._logger.info(f"Fetched Prices: {prices}")
@@ -212,7 +210,7 @@ class PlaceOrderUseCase:
             schema=None,
         )
 
-        return OrderDto.from_domain(order)
+        return order
 
     async def validate_and_fetch_course_prices(self, course_ids: list[str]) -> dict[str, dict[str, Any]]:
         """

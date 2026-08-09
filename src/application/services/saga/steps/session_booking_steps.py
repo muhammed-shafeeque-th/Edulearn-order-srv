@@ -23,6 +23,7 @@ from src.infrastructure.redis.redis_client import RedisClient
 
 payment_schema_path = (
     Path(__file__).parent.parent.parent.parent.parent
+    / "shared"
     / "schemas"
     / "payment.avsc"
 )

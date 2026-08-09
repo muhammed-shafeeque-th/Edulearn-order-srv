@@ -6,7 +6,7 @@ from src.domain.repositories.order_repository import  IOrderRepository
 from src.domain.repositories.session_booking_repository import  ISessionBookingRepository
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.grpc_client_interface import ICourseServiceClient, ISessionServiceClient, IUserServiceClient
-from src.application.use_cases.order.place_order_use_case import PlaceOrderUseCase
+from order.src.application.use_cases.order.impls.place_order_use_case import PlaceOrderUseCase
 from src.application.interfaces.redis_interface import IRedisService
 from src.infrastructure.database.repositories.sql_order_repository import SqlOrderRepository
 from src.infrastructure.database.repositories.sql_session_booking_repository import SqlSessionBookingRepository

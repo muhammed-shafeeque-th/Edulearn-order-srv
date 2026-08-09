@@ -1,5 +1,6 @@
 from  datetime import datetime, timezone
 from uuid import uuid4
+from src.application.use_cases.order.interfaces.order_payment_initiated_usecase_interface import IOrderPaymentInitiatedUseCase
 from src.domain.events.order_payment_initiate_event import OrderPaymentInitiatedEventDto
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.logging_interface import ILoggingService
@@ -12,7 +13,7 @@ from src.domain.exceptions.exceptions import OrderNotFoundException
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
-class OrderPaymentInitiatedUseCase:
+class OrderPaymentInitiatedUseCase(IOrderPaymentInitiatedUseCase):
     def __init__(self, order_repository: IOrderRepository,
                  kafka_producer: IKafkaProducer,
                  redis: IRedisService,

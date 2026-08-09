@@ -1,37 +1,35 @@
-from src.domain.events.order_failed_event import OrderFailedEvent, OrderFailedEventType
+from src.application.use_cases.order.interfaces.order_success_usecase_interface import IOrderSuccessUseCase
+from src.domain.events.order_success_event import OrderSucceededEvent, OrderSucceededEventType
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
 from src.application.interfaces.redis_interface import IRedisService
 from src.domain.repositories.order_repository import IOrderRepository
-from src.domain.events.order_payment_timeout_event import OrderPaymentTimeoutEventDto
+from src.domain.events.order_payment_success_event import OrderPaymentSuccessEventDto
 from src.domain.entities.payment_details import PaymentDetails, PaymentStatus
 from src.shared.events.topics import EVENT_TOPICS
 from src.infrastructure.database.database import get_db
 from src.domain.exceptions.exceptions import OrderNotFoundException
 from tenacity import retry, stop_after_attempt, wait_exponential
 from datetime import datetime, timezone
-from uuid import uuid4 as uuidV4
+from uuid import uuid4
 
 
-class HandleOrderTimeoutUseCase:
-    def __init__(self,  order_repository: IOrderRepository,
-                 kafka_producer: IKafkaProducer[OrderFailedEventType],
+class OrderSuccessUseCase(IOrderSuccessUseCase):
+    def __init__(self, order_repository: IOrderRepository,
+                 kafka_producer: IKafkaProducer[OrderSucceededEventType],
                  redis: IRedisService,
                  logging_service: ILoggingService,
                  metrics_service: IMetricsService):
         self._order_repository = order_repository
         self._kafka_producer = kafka_producer
         self._cache = redis
-        self._logger = logging_service.get_logger(
-            "HandleOrderTimeoutUseCase")
+        self._logger = logging_service.get_logger("OrderSuccessUseCase")
         self._metrics = metrics_service
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
-    async def execute(self, dto: OrderPaymentTimeoutEventDto):
+    async def execute(self, dto: OrderPaymentSuccessEventDto):
         payload = dto.payload
-        
-        self._logger.info(f"Processing HandleOrderTimeoutUseCase for order {payload.order_id}")
 
         async with get_db() as session:
             order = await self._order_repository.find_by_id(payload.order_id, session)
@@ -41,24 +39,27 @@ class HandleOrderTimeoutUseCase:
 
             if not order.payment_details:
                 payment_details = PaymentDetails(
-                    id=str(uuidV4()),
+                    id=str(uuid4()),
                     payment_id=payload.payment_id,
                     provider=payload.provider,
                     provider_order_id=payload.provider_order_id,
                     updated_at=datetime.fromtimestamp(
                         int(dto.timestamp) / 1000, tz=timezone.utc),
-                    payment_status="expired",
+                    payment_status="success",
                 )
                 order.set_payment_details(payment_details)
             else:
-                order.payment_details.mark_expired()
+                order.payment_details.mark_success()
 
-            order.mark_expired()
+            order.mark_completed()
+
             await self._order_repository.save(order, session)
 
+        self._logger.info(f"Publishing order success Event ")
+        # Publish to other services
         await self._kafka_producer.publish_event(
-            EVENT_TOPICS.ORDER_COURSE_FAILED.value,
-            event=OrderFailedEvent(
+            EVENT_TOPICS.ORDER_COURSE_SUCCEEDED.value,
+            event=OrderSucceededEvent(
                 orderId=order.id,
                 userId=order.user_id,
                 items=[{"courseId": i.course_id, "price": i.price}
@@ -69,5 +70,5 @@ class HandleOrderTimeoutUseCase:
             schema=None,
         )
 
-        self._logger.warning(f"Order {payload.order_id} marked as EXPIRED")
+        self._logger.info(f"Order {payload.order_id} marked as COMPLETED")
         return

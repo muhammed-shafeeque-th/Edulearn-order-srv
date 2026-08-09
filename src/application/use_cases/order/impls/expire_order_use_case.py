@@ -1,3 +1,4 @@
+from src.application.use_cases.order.interfaces.expire_order_usecase_interface import IExpireOrderUseCase
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
@@ -9,7 +10,7 @@ from src.infrastructure.database.database import get_db
 from src.domain.exceptions.exceptions import OrderNotFoundException
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-class ExpireOrderUseCase:
+class ExpireOrderUseCase(IExpireOrderUseCase):
     def __init__(self,  order_repository: IOrderRepository,
                  kafka_producer: IKafkaProducer,
                  redis: IRedisService,
@@ -46,7 +47,7 @@ class ExpireOrderUseCase:
             EVENT_TOPICS.ORDER_COURSE_EXPIRED.value,
             event=OrderExpiredEvent(
                 orderId=order.id,
-                userId=order.userId if hasattr(order, 'userId') else order.user_id,
+                userId= order.user_id,
                 items=[{"courseId": i.course_id, "price": i.price} for i in order.items],
                 amount=order.amount.amount,
                 currency=order.amount.currency,

@@ -110,57 +110,6 @@ settings = get_settings()
 #     ttl: int = 3600  # Default cache TTL in seconds
 
 
-# class ObservabilitySettings(BaseSettings):
-#     jaeger_host: str = "localhost"
-#     jaeger_port: int = 6831
-#     prometheus_port: int = 9090
-#     loki_url: str = "http://localhost:3100"
-#     log_level: str = "INFO"
-#     log_format: str = "json"
-#     metrics_enabled: bool = True
-#     tracing_enabled: bool = True
-#     logging_enabled: bool = True
-
-
-# class SecuritySettings(BaseSettings):
-#     jwt_secret: str = "your-secret-key-change-in-production"
-#     jwt_algorithm: str = "HS256"
-#     jwt_expiration_hours: int = 24
-#     cors_origins: List[str] = ["*"]
-#     cors_allow_credentials: bool = True
-#     cors_allow_methods: List[str] = ["*"]
-#     cors_allow_headers: List[str] = ["*"]
-
-
-# class APISettings(BaseSettings):
-#     port: int = 8000
-#     host: str = "0.0.0.0"
-#     workers: int = 1
-#     reload: bool = False
-#     access_log: bool = True
-#     timeout_keep_alive: int = 5
-#     timeout_graceful_shutdown: int = 30
-
-
-# class GRPCSettings(BaseSettings):
-#     port: int = 50051
-#     host: str = "0.0.0.0"
-#     max_concurrent_rpcs: int = 100
-#     max_connection_idle: int = 300
-#     max_connection_age: int = 600
-#     max_connection_age_grace: int = 60
-#     time: int = 7200
-#     timeout: int = 20
-
-
-# class OrderSettings(BaseSettings):
-#     max_courses_per_order: int = 10
-#     max_order_amount: float = 10000.0
-#     order_expiration_minutes: int = 30
-#     retry_attempts: int = 3
-#     retry_backoff_multiplier: float = 2.0
-#     retry_initial_delay: float = 1.0
-
 
 # class Settings(BaseSettings):
 #     # Environment

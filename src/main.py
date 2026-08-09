@@ -12,7 +12,7 @@ import asyncio
 from prometheus_client import make_asgi_app
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.use_cases.order.impls.place_order_use_case import PlaceOrderUseCase
-from src.infrastructure.database.database import db, get_db, AsyncSession
+from src.infrastructure.database.database import db as database, get_db, AsyncSession
 from src.infrastructure.di.container import Container
 from src.infrastructure.config.settings import settings
 import logging
@@ -89,8 +89,8 @@ async def health():
 
 
 @app.get("/ready")
-async def readiness():
-    return await health_server.readiness_check()
+async def readiness(db: AsyncSession = Depends(database)):
+    return await health_server.readiness_check(db)
 
 
 if __name__ == "__main__":

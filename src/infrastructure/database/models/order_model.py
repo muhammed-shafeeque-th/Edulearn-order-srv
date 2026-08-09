@@ -4,11 +4,6 @@ from datetime import datetime, timezone
 from uuid import uuid4
 from sqlalchemy.ext.declarative import declarative_base
 
-from src.application.dtos.order_dto import OrderDto
-from src.domain.entities.order import Order, OrderStatus
-from src.domain.entities.order_items import OrderItem
-from src.domain.entities.payment_details import PaymentDetails
-from src.domain.value_objects.money import Money
 from src.infrastructure.database.database import Base
 
 from typing import TypeVar, cast

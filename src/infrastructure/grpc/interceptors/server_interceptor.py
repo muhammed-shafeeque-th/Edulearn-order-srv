@@ -58,8 +58,8 @@ class ServerMetricsInterceptor(aio.ServerInterceptor):
 
 
 class ServerTracingInterceptor(aio.ServerInterceptor):
-    def __init__(self) -> None:
-        self.tracer = trace.get_tracer(settings.settings.SERVICE_NAME)
+    def __init__(self, tracer: ITracingService,) -> None:
+        self.tracer = tracer.get_tracer()
 
     async def intercept_service(
         self,

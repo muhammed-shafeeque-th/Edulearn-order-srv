@@ -11,15 +11,20 @@ from src.domain.entities.order import Order
 
 # Load avro schemas
 order_schema_path = (
-    Path(__file__).parent.parent.parent.parent.parent / "schemas" / "order.avsc"
+     Path(__file__).parent.parent.parent.parent.parent
+        / "shared"
+        / "schemas"
+        / "order.avsc"
 )
 with open(order_schema_path, "r") as f:
     order_avro_schema = fastavro.parse_schema(json.load(f))
 
 
 payment_schema_path = (
-    Path(__file__).parent.parent.parent.parent.parent /
-    "schemas" / "payment.avsc"
+     Path(__file__).parent.parent.parent.parent.parent
+        / "shared"
+        / "schemas"/
+        "payment.avsc"
 )
 with open(payment_schema_path, "r") as f:
     payment_avro_schema = fastavro.parse_schema(json.load(f))

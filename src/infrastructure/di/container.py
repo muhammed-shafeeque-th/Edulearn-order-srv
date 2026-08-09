@@ -1,20 +1,24 @@
 from dependency_injector import containers, providers
+from src.application.use_cases.order.impls.order_timeout_use_case import OrderTimeoutUseCase
+from src.presentation.http.health_server import HealthServer
+from src.infrastructure.grpc.order_server import OrderGrpcServer
+from src.presentation.grpc.order_grpc_handlers import OrderServiceHandler
+from src.presentation.kafka.kafka_handlers import KafkaEventHandlers
 from src.infrastructure.observability.logger.logger_config import LoggerConfig
 from src.infrastructure.observability.logger.logger_manager import LoggerManager
-from src.application.use_cases.order.get_revenue_stats_use_case import GetRevenueStatsUseCase
-from src.application.use_cases.order.restore_order_use_case import RestoreOrderUseCase
-from src.application.use_cases.order.order_timeout_use_case import HandleOrderTimeoutUseCase
-from src.application.use_cases.order.order_failed_use_case import OrderFailedUseCase
-from src.application.use_cases.order.order_success_use_case import OrderSuccessUseCase
-from src.application.use_cases.order.order_payment_initiated_use_case import OrderPaymentInitiatedUseCase
-from src.application.use_cases.order.get_order_use_case import GetOrderUseCase
-from src.application.use_cases.order.get_orders_use_case import GetOrdersUseCase
-from src.application.use_cases.order.expire_order_use_case import ExpireOrderUseCase
+from src.application.use_cases.order.impls.get_revenue_stats_use_case import GetRevenueStatsUseCase
+from src.application.use_cases.order.impls.restore_order_use_case import RestoreOrderUseCase
+from src.application.use_cases.order.impls.order_failed_use_case import OrderFailedUseCase
+from src.application.use_cases.order.impls.order_success_use_case import OrderSuccessUseCase
+from src.application.use_cases.order.impls.order_payment_initiated_use_case import OrderPaymentInitiatedUseCase
+from src.application.use_cases.order.impls.get_order_use_case import GetOrderUseCase
+from src.application.use_cases.order.impls.get_orders_use_case import GetOrdersUseCase
+from src.application.use_cases.order.impls.expire_order_use_case import ExpireOrderUseCase
 from src.infrastructure.grpc.clients.couser_service_client import CourseServiceClient
 from src.application.interfaces.kafka_producer_interface import IKafkaProducer
 from src.application.interfaces.redis_interface import IRedisService
 from src.application.interfaces.grpc_client_interface import IUserServiceClient, ICourseServiceClient, ISessionServiceClient
-from src.application.use_cases.order.place_order_use_case import PlaceOrderUseCase
+from src.application.use_cases.order.impls.place_order_use_case import PlaceOrderUseCase
 from src.application.use_cases.session_booking.session_booking_use_case import BookSessionUseCase
 from src.application.interfaces.logging_interface import ILoggingService
 from src.application.interfaces.metrics_interface import IMetricsService
@@ -40,14 +44,13 @@ from src.domain.entities.order import Order
 
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(modules=[
-        "src.application.use_cases.order.place_order_use_case",
-        "src.application.use_cases.order.get_order_use_case",
-        "src.application.use_cases.order.get_orders_use_case",
+        "src.application.use_cases.order.impls.place_order_use_case",
+        "src.application.use_cases.order.impls.get_order_use_case",
+        "src.application.use_cases.order.impls.get_orders_use_case",
         "src.application.use_cases.session_booking.session_booking_use_case",
         "src.application.services.saga.saga_orchestrator",
         "src.application.services.saga.steps.order_steps",
         "src.application.services.saga.steps.session_booking_steps",
-        "src.presentation.grpc.order_service_impl",
         "src.main",
         # Note: If you plan to use dependency injection (e.g., with `@inject`) for dependencies inside the KafkaConsumer or modules/components that the consumer calls, you should add its Python import path (e.g., "src.infrastructure.kafka.consumer") to this wiring config.
         # This will enable Dependency Injector to perform injection/wiring in that module.
@@ -124,6 +127,9 @@ class Container(containers.DeclarativeContainer):
         user_service_client=user_service_client,
         logging_service=logging_service,
     )
+    
+    
+    
 
     # Use Cases
     place_order_use_case = providers.Factory(
@@ -202,7 +208,7 @@ class Container(containers.DeclarativeContainer):
     #     metrics_service=metrics_service,
     # )
     order_timeout_handler = providers.Factory(
-        HandleOrderTimeoutUseCase,
+        OrderTimeoutUseCase,
         order_repository=order_repository,
         kafka_producer=kafka_producer,
         redis=redis_client,
@@ -218,21 +224,49 @@ class Container(containers.DeclarativeContainer):
         metrics_service=metrics_service,
     )
 
-    # Kafka consumer
-    kafka_consumer = providers.Singleton(
-        KafkaConsumer,
-        order_repository=order_repository,
-        session_booking_repository=session_booking_repository,
+    # Request handlers
+    
+    kafka_handlers = providers.Singleton(
+        KafkaEventHandlers,
         payment_initiated_handler=payment_initiated_handler,
         order_success_handler=order_success_handler,
         order_failed_handler=order_failed_handler,
         order_timeout_handler=order_timeout_handler,
-        kafka_producer=kafka_producer,
-        metrics_service=metrics_service,
-        redis=redis_client,
-        # logging_service=logging_service.provided.get_logger.call("KafkaConsumer")
-        logging_service=logging_service
     )
+    
+    order_grpc_handlers = providers.Singleton(
+            OrderServiceHandler,
+            place_order_use_case=place_order_use_case,
+            get_orders_use_case=get_orders_use_case,
+            get_revenue_stats_use_case=get_revenue_stats_use_case,
+            get_order_use_case=get_order_use_case,
+            restore_order_use_case=restore_order_use_case,
+            # book_session_use_case=book_session_use_case,
+        )
+    
+    # server impl
+    order_grpc_server = providers.Singleton(
+            OrderGrpcServer,
+            grpc_handlers=order_grpc_handlers,
+            auth_guard=auth_guard,
+            logger_service=logging_service,
+            metrics=metrics_service,
+            tracer=tracing_service,
+        )
+    kafka_consumer = providers.Singleton(
+            KafkaConsumer,
+            handlers=kafka_handlers,
+            kafka_producer=kafka_producer,
+            logging_service=logging_service,
+            metrics_service=metrics_service,
+        )
+    health_server = providers.Singleton(
+            HealthServer,
+            logger=logging_service,
+            kafka=kafka_consumer,
+            redis=redis_client,
+        )
+    
 
     # SAGA Orchestrator (Factory for dynamic steps, runtime objects must be passed at runtime)
     saga_orchestrator = providers.Factory(
